@@ -4,7 +4,7 @@ O Kerberos é uma plataforma de gestão focada no mercado pet, desenvolvida para
 
 **Funcionalidades**
 
-🏢 Painel do Administrador (Petshop)
+Painel do Administrador (Petshop)
 -Agenda Centralizada: Controle visual de horários, cliente e serviços.
 -Gestão de Clientes e Pets: Histórico de atendimento, preferências informações de saúde (vacinas, alergias).
 -Relatórios: Controle de fluxo de caixa e serviços realizados.
