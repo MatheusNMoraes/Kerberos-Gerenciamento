@@ -1,0 +1,49 @@
+# ==========================================
+# Ambientes Virtuais (Virtual Environments)
+# ==========================================
+.venv/
+venv/
+ENV/
+env/
+target/
+
+# ==========================================
+# Caches e Arquivos Temporários do Python
+# ==========================================
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# Arquivos Específicos do Django
+# ==========================================
+# Ignora o banco de dados padrão do ambiente de desenvolvimento
+db.sqlite3
+db.sqlite3-journal
+
+# Ignora arquivos de mídia enviados por usuários no desenvolvimento
+media/
+staticfiles/
+
+# ==========================================
+# Configurações de Ambiente e Chaves Secretas
+# ==========================================
+.env
+.env.local
+.secret
+secrets.json
+
+# ==========================================
+# Editores de Código e IDEs
+# ==========================================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
