@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Usuários{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes — FamaPet</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/img/favicon.svg">
+
+
+    <link href="./assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="./assets/css/fontes.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+</head>
+
+<body data-pagina="clientes">
+
+    <div class="topo-mobile">
+        <button class="btn-menu" id="abrirMenu" aria-label="Abrir menu"><i class="bi bi-list"></i></button>
+        <a class="marca" href="index.html"><img src="./assets/img/logo.svg" alt="FamaPet" style="width:34px;height:34px"></a>
+    </div>
+    <div class="fundo-sidebar"></div>
+
+    <div class="layout-painel">
+        <aside class="sidebar" aria-label="Menu lateral"></aside>
+
+        <main class="conteudo-painel">
+            <div class="quadro-painel">
+                <h1 class="titulo-painel">Clientes</h1>
+                <p class="subtitulo-painel">Todos os tutores cadastrados na FamaPet.</p>
+
+                <div class="barra-tabela">
+                    <div class="busca-tabela">
+                        <i class="bi bi-search"></i>
+                        <input type="search" id="buscaClientes" placeholder="Pesquisar por nome, e-mail ou telefone" aria-label="Pesquisar clientes">
+                    </div>
+                </div>
+
+                <div class="tabela-rolagem">
+                    <table class="tabela-fama">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nome</th>
+                                <th scope="col">E-mail</th>
+                                <th scope="col">Telefone</th>
+                                <th scope="col">Pets</th>
+                                <th scope="col">Agendamentos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoClientes"></tbody>
+                    </table>
+                </div>
+
+                <nav class="paginacao-fama" id="paginacaoClientes" aria-label="Paginação"></nav>
+            </div>
+        </main>
+    </div>
+
+    <h2 class="mb-1">Usuários Cadastrados</h2>
+
+    {% if usuarios %}
+
+    <table class="table table-hover align-middle">
+        <thead class="table-primary">
+            <tr>
+                <th>#</th>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td>
+                    {{ forloop.counter }}
+                </td>
+                <td>
+                    {{ usuario.nome }}
+                </td>
+                <td>
+                    {{ usuario.email }}
+                </td>
+                <td>
+                    {{ usuario.telefone }}
+                </td>
+                <td class="text-center">
+                    <div class="btn-group">
+                        <a href="#"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="#"
+                           class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+    <div class="alert alert-info mb-0">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        Nenhum usuário cadastrado no sistema.
+    </div>
+    {% endif %}
+
+{% endblock %}

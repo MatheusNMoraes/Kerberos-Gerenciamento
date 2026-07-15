@@ -104,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
-USE_TZ = True # Note: USE_L10N removed for Django 5.0+ compatibility
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -117,6 +117,10 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+ALLOWED_HOSTS = ['*', '.github.dev', '.app.github.dev']
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://localhost:8000",
+    'https://*.github.dev',
+    'https://*.app.github.dev',
+     "https://localhost:8000",
 ]
