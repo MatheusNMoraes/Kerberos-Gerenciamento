@@ -2,6 +2,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from django.contrib.auth.models import User
 
 
 class Usuario(models.Model):
@@ -19,6 +20,11 @@ class Usuario(models.Model):
         related_name="usuarios",
         null=True,
         blank=True
+    )
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="usuario",
     )
 
     class Meta:
