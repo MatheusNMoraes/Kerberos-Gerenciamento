@@ -1,6 +1,6 @@
 from datetime import date
 from django import forms
-from ..models.agendamento import Agendamento
+from ..models import Agendamento
 
 class AgendamentoForm(forms.ModelForm):
     data = forms.DateTimeField(

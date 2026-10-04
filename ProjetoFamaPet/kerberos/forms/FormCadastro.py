@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.db import transaction
-from .models import Usuario
+from ..models import Usuario
 
 class CadastroForm(forms.Form):
     nome = forms.CharField(max_length=100)

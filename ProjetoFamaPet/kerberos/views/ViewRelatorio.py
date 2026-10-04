@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from ..models.agendamento import Agendamento
+from ..models import Agendamento
 
 def relatorio(request):
     relatorios = Agendamento.objects.prefetch_related('servicos').select_related('usuario', 'pet')

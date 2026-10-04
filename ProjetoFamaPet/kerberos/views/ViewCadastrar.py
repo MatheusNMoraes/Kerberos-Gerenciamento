@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from ..forms.FormCadastro import CadastroForm
 from ..forms.FormPet import PetForm
-from ..models.usuario import Usuario
-from ..models.pet import Pet
+from ..models import Usuario
+from ..models import Pet
 
 def cadastrar_usuario(request):
     if request.method == 'POST':

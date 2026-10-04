@@ -1,6 +1,6 @@
 from datetime import date
 from django import forms
-from . import models
+from .. import models
 
 class NomeValidationMixin:
     def clean_nome(self):
