@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from ..forms.FormPet import PetForm
-from ..models.pet import Pet
+from ..models import Pet
 
 @login_required
 def listar_pets(request):

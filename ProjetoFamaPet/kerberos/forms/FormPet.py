@@ -1,6 +1,6 @@
 from datetime import date
 from django import forms
-from ..models.pet import Pet
+from ..models import Pet
 
 class NomeValidationMixin:
     def clean_nome(self):

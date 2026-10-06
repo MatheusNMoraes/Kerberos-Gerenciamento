@@ -1,6 +1,6 @@
 from datetime import date
 from django import forms
-from ..models.usuario import Usuario
+from ..models import Usuario
 
 class NomeValidationMixin:
     def clean_nome(self):
@@ -38,7 +38,6 @@ class UsuarioForm(NomeValidationMixin, forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
         
-        # Corrigido: Alterado 'models.Usuario' para 'Usuario'
         query = Usuario.objects.filter(email=email)
         if self.instance and self.instance.pk:
             query = query.exclude(pk=self.instance.pk)
