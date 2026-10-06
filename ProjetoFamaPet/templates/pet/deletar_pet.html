@@ -1,0 +1,89 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Excluir Pet - {{ pet.nome }} - Fama Pet{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-4">
+    <div class="content-wrapper mx-auto">
+        
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'listar_pets' %}" class="text-decoration-none text-muted small">Pets</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Excluir Pet</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold brand-font text-dark mb-0 fs-2">Confirmar Exclusão do Pet</h2>
+                <p class="text-muted small mb-0">Esta ação é irreversível. Revise as informações antes de confirmar.</p>
+            </div>
+            <a href="{% url 'listar_pets' %}" class="btn btn-outline-secondary btn-back d-inline-flex align-items-center gap-2 align-self-start align-self-md-auto">
+                <i class="bi bi-arrow-left fs-6"></i>
+                <span>Voltar à lista</span>
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm form-card overflow-hidden">
+            <div class="card-body p-4 p-md-5">
+                <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-center gap-3">
+                    <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1">Atenção!</h6>
+                        <p class="mb-0 small text-secondary">Você está prestes a remover o cadastro do pet do sistema.</p>
+                    </div>
+                </div>
+
+                <div class="form-section mb-4 pb-4 border-bottom">
+                    <div class="d-flex align-items-center gap-2 mb-3 text-dark">
+                        <div class="section-icon-badge">
+                            <i class="bi bi-heart-pulse fs-5 text-dark"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0 brand-font">Dados do Pet</h5>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <span class="text-muted small d-block">Nome do Pet:</span>
+                                <strong class="text-dark">{{ pet.nome }}</strong>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="text-muted small d-block">Raça:</span>
+                                <strong class="text-dark">{{ pet.raca|default:"Não informada" }}</strong>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="text-muted small d-block">Porte:</span>
+                                <strong class="text-dark">{{ pet.get_porte_display|default:pet.porte }}</strong>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="text-muted small d-block">Data de Nascimento:</span>
+                                <strong class="text-dark">{{ pet.data_de_nascimento|date:"d/m/Y"|default:"-" }}</strong>
+                            </div>
+                            {% if pet.observacao %}
+                            <div class="col-12">
+                                <span class="text-muted small d-block">Observações:</span>
+                                <span class="text-dark">{{ pet.observacao }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-2">
+                        <a href="{% url 'listar_pets' %}" class="btn btn-light-custom px-4 py-2 order-2 order-sm-1 text-center">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger px-4 py-2 d-inline-flex align-items-center justify-content-center gap-2 order-1 order-sm-2">
+                            <i class="bi bi-trash-fill fs-6"></i>
+                            <span>Sim, Excluir Pet</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

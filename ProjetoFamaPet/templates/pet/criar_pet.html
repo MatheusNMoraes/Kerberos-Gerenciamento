@@ -1,0 +1,190 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Cadastrar Novo Pet - Fama Pet{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-4">
+    <div class="content-wrapper mx-auto">
+        
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'listar_pets' %}" class="text-decoration-none text-muted small">Pets</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Novo Cadastro</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold brand-font text-dark mb-0 fs-2">Cadastrar Novo Pet</h2>
+                <p class="text-muted small mb-0">Preencha as informações do pet para registro no sistema Fama Pet.</p>
+            </div>
+            <a href="{% url 'listar_pets' %}" class="btn btn-outline-secondary btn-back d-inline-flex align-items-center gap-2 align-self-start align-self-md-auto">
+                <i class="bi bi-arrow-left fs-6"></i>
+                <span>Voltar à lista</span>
+            </a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-4 custom-alert shadow-sm" role="alert">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-4 custom-alert shadow-sm" role="alert">
+                <div class="d-flex align-items-center gap-2 mb-1 fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>Verifique os erros abaixo:</span>
+                </div>
+                <ul class="mb-0 ps-4 small">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="card border-0 shadow-sm form-card overflow-hidden">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" novalidate id="petRegisterForm">
+                    {% csrf_token %}
+
+                    <div class="form-section mb-4 pb-4 border-bottom">
+                        <div class="d-flex align-items-center gap-2 mb-3 text-dark">
+                            <div class="section-icon-badge">
+                                <i class="bi bi-heart-pulse fs-5 text-dark"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0 brand-font">Informações do Pet</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <!-- Nome -->
+                            <div class="col-md-6">
+                                <label for="{{ form.nome.id_for_label }}" class="form-label fw-semibold text-secondary small">
+                                    Nome do Pet <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text custom-input-group-text"><i class="bi bi-tag"></i></span>
+                                    <input type="text" 
+                                           name="{{ form.nome.html_name }}" 
+                                           id="{{ form.nome.id_for_label }}"
+                                           value="{{ form.nome.value|default:'' }}"
+                                           placeholder="Ex: Thor, Mel"
+                                           class="form-control custom-input {% if form.nome.errors %}is-invalid{% endif %}">
+                                </div>
+                                {% if form.nome.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">
+                                        <i class="bi bi-exclamation-circle me-1"></i>{{ form.nome.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Data de Nascimento -->
+                            <div class="col-md-6">
+                                <label for="{{ form.data_de_nascimento.id_for_label }}" class="form-label fw-semibold text-secondary small">
+                                    Data de Nascimento
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text custom-input-group-text"><i class="bi bi-calendar-event"></i></span>
+                                    <input type="date" 
+                                           name="{{ form.data_de_nascimento.html_name }}" 
+                                           id="{{ form.data_de_nascimento.id_for_label }}"
+                                           value="{{ form.data_de_nascimento.value|date:'Y-m-d'|default:'' }}"
+                                           max="{{ form.data_de_nascimento.field.widget.attrs.max }}"
+                                           class="form-control custom-input {% if form.data_de_nascimento.errors %}is-invalid{% endif %}">
+                                </div>
+                                {% if form.data_de_nascimento.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">
+                                        <i class="bi bi-exclamation-circle me-1"></i>{{ form.data_de_nascimento.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Raça -->
+                            <div class="col-md-6">
+                                <label for="{{ form.raca.id_for_label }}" class="form-label fw-semibold text-secondary small">
+                                    Raça
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text custom-input-group-text"><i class="bi bi-shield-dog"></i></span>
+                                    <input type="text" 
+                                           name="{{ form.raca.html_name }}" 
+                                           id="{{ form.raca.id_for_label }}"
+                                           value="{{ form.raca.value|default:'' }}"
+                                           placeholder="Ex: Poodle, SRD"
+                                           class="form-control custom-input {% if form.raca.errors %}is-invalid{% endif %}">
+                                </div>
+                                {% if form.raca.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">
+                                        <i class="bi bi-exclamation-circle me-1"></i>{{ form.raca.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Porte -->
+                            <div class="col-md-6">
+                                <label for="{{ form.porte.id_for_label }}" class="form-label fw-semibold text-secondary small">
+                                    Porte
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text custom-input-group-text"><i class="bi bi-arrows-fullscreen"></i></span>
+                                    <select name="{{ form.porte.html_name }}" 
+                                            id="{{ form.porte.id_for_label }}" 
+                                            class="form-select custom-input {% if form.porte.errors %}is-invalid{% endif %}">
+                                        {% for choice in form.porte.field.choices %}
+                                            <option value="{{ choice.0 }}" {% if choice.0 == form.porte.value %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% if form.porte.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">
+                                        <i class="bi bi-exclamation-circle me-1"></i>{{ form.porte.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Observação -->
+                            <div class="col-12">
+                                <label for="{{ form.observacao.id_for_label }}" class="form-label fw-semibold text-secondary small">
+                                    Observações
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text custom-input-group-text"><i class="bi bi-card-text"></i></span>
+                                    <textarea name="{{ form.observacao.html_name }}" 
+                                              id="{{ form.observacao.id_for_label }}" 
+                                              rows="4"
+                                              placeholder="Histórico médico, temperamento ou observações gerais..."
+                                              class="form-control custom-input {% if form.observacao.errors %}is-invalid{% endif %}">{{ form.observacao.value|default:'' }}</textarea>
+                                </div>
+                                {% if form.observacao.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">
+                                        <i class="bi bi-exclamation-circle me-1"></i>{{ form.observacao.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
+                        <a href="{% url 'listar_pets' %}" class="btn btn-light-custom px-4 py-2 order-2 order-sm-1 text-center">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-cta-custom px-4 py-2 d-inline-flex align-items-center justify-content-center gap-2 order-1 order-sm-2">
+                            <i class="bi bi-check-circle-fill fs-6"></i>
+                            <span>Salvar Pet</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
