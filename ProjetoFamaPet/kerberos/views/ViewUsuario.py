@@ -18,7 +18,7 @@ def criar_cliente(request):
             return redirect('clientes')
     else:
         form = UsuarioForm()
-    return render(request, 'usuario/form_usuario.html', {'form': form})
+    return render(request, 'usuario/criar_cliente.html', {'form': form})
 
 def editar_cliente(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk)
