@@ -1,20 +1,8 @@
+{% extends 'base/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Cadastrar Novo Usuário - Fama Pet{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{% static 'css/novo_cliente.css' %}">
-</head>
+{% block title %}Editar Usuário - {{ usuario.nome }} - Fama Pet{% endblock %}
 
-<body>
 {% block content %}
 <div class="container-fluid px-3 px-md-4 py-4">
     <div class="content-wrapper mx-auto">
@@ -25,11 +13,11 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-1">
                         <li class="breadcrumb-item"><a href="{% url 'listar_clientes' %}" class="text-decoration-none text-muted small">Usuários</a></li>
-                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Novo Cadastro</li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Editar Usuário</li>
                     </ol>
                 </nav>
-                <h2 class="fw-bold brand-font text-dark mb-0 fs-2">Cadastrar Novo Usuário</h2>
-                <p class="text-muted small mb-0">Preencha os dados abaixo para conceder acesso ao sistema Fama Pet.</p>
+                <h2 class="fw-bold brand-font text-dark mb-0 fs-2">Editar Usuário</h2>
+                <p class="text-muted small mb-0">Altere os dados abaixo para atualizar as informações de acesso no Fama Pet.</p>
             </div>
             <a href="{% url 'listar_clientes' %}" class="btn btn-outline-secondary btn-back d-inline-flex align-items-center gap-2 align-self-start align-self-md-auto">
                 <i class="bi bi-arrow-left fs-6"></i>
@@ -65,7 +53,7 @@
 
         <div class="card border-0 shadow-sm form-card overflow-hidden">
             <div class="card-body p-4 p-md-5">
-                <form method="POST" novalidate id="userRegisterForm">
+                <form method="POST" novalidate id="userEditForm">
                     {% csrf_token %}
 
                     <div class="form-section mb-4 pb-4 border-bottom">
@@ -186,14 +174,14 @@
                         </div>
                     </div>
                     {% endif %}
-]
+
                     <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
                         <a href="{% url 'listar_clientes' %}" class="btn btn-light-custom px-4 py-2 order-2 order-sm-1 text-center">
                             Cancelar
                         </a>
                         <button type="submit" class="btn btn-cta-custom px-4 py-2 d-inline-flex align-items-center justify-content-center gap-2 order-1 order-sm-2" id="btnSubmit">
                             <i class="bi bi-check-circle-fill fs-6"></i>
-                            <span>Salvar Usuário</span>
+                            <span>Salvar Alterações</span>
                         </button>
                     </div>
                 </form>
@@ -202,7 +190,3 @@
     </div>
 </div>
 {% endblock %}
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>

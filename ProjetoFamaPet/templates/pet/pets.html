@@ -1,8 +1,8 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}Lista de Pets - Fama Pet{% endblock %}
-
-{% block nav_pets%}active{% endblock %}
+{% block nav_pets %}active{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-column h-100 justify-content-between">
@@ -15,12 +15,12 @@
                     <span class="input-group-text bg-white border-end-0 pe-1" style="border-radius: var(--raio) 0 0 var(--raio); border-color: var(--cinza-input);">
                         <i class="bi bi-search text-muted" style="font-size: 0.9rem;"></i>
                     </span>
-                    <input type="text" name="q" class="form-control border-start-0 ps-1" placeholder="Procurar pet">
+                    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control border-start-0 ps-1" placeholder="Procurar pet">
                 </div>
             </form>
 
-            <a href="#" class="btn btn-cta d-inline-flex align-items-center gap-2" style="font-size: 0.85rem; padding: 8px 20px;">
-                <i class="bi bi-person-plus-fill"></i> Novo pet
+            <a href="{% url 'criar_pet' %}" class="btn btn-cta d-inline-flex align-items-center gap-2" style="font-size: 0.85rem; padding: 8px 20px;">
+                <i class="bi bi-plus-lg"></i> Novo pet
             </a>
         </div>
 
@@ -29,11 +29,9 @@
                 <thead>
                     <tr class="text-muted border-bottom" style="font-size: 0.9rem;">
                         <th class="fw-bold ps-3 pb-3">Nome</th>
-                        <th class="fw-bold pb-3">Idade</th>
-                        <th class="fw-bold pb-3">Especie</th>
-                        <th class="fw-bold pb-3">Porte</th>
                         <th class="fw-bold pb-3">Raça</th>
-                        <th class="fw-bold pb-3">Tutor</th>
+                        <th class="fw-bold pb-3">Porte</th>
+                        <th class="fw-bold pb-3">Nascimento</th>
                         <th class="fw-bold text-center pb-3">Ação</th>
                     </tr>
                 </thead>
@@ -41,30 +39,22 @@
                     {% for pet in pets %}
                     <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff;">
                         <td class="fw-bold py-3 ps-3" style="border-radius: var(--raio) 0 0 var(--raio);">{{ pet.nome }}</td>
-                        <td class="py-3">{{ pet.idade }}</td>
-                        <td class="py-3">{{ pet.especie }}</td>
-                        <td class="py-3">{{ pet.porte }}</td>
-                        <td class="py-3">{{ pet.raca }}</td>
-                        <td class="py-3">{{ pet.usuario }}</td>
+                        <td class="py-3">{{ pet.raca|default:"Não informada" }}</td>
+                        <td class="py-3">{{ pet.get_porte_display|default:pet.porte }}</td>
+                        <td class="py-3">{{ pet.data_de_nascimento|date:"d/m/Y"|default:"-" }}</td>
                         <td class="text-center py-3" style="border-radius: 0 var(--raio) var(--raio) 0;">
-                            <a href="#" class="text-decoration-none me-2"><i class="bi bi-pencil-square action-icon"></i></a>
-                            <a href="#" class="text-decoration-none"><i class="bi bi-trash action-icon delete"></i></a>
+                            <a href="{% url 'editar_pet' pet.pk %}" class="text-decoration-none me-2" title="Editar"><i class="bi bi-pencil-square action-icon"></i></a>
+                            <a href="{% url 'deletar_pet' pet.pk %}" class="text-decoration-none" title="Excluir"><i class="bi bi-trash action-icon delete"></i></a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">Nenhum pet encontrado.</td>
+                        <td colspan="5" class="text-center py-4 text-muted">Nenhum pet encontrado.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <div class="d-flex justify-content-center align-items-center gap-3 mt-4 text-muted small">
-        <a href="#" class="text-decoration-none text-muted">Anterior</a>
-        <span class="badge d-flex align-items-center justify-content-center" style="background-color: var(--amarelo-cta); color: var(--preto); width: 28px; height: 28px; border-radius: 6px; font-weight: 600;">1</span>
-        <a href="#" class="text-decoration-none text-muted">Próximo</a>
     </div>
 </div>
 {% endblock %}
