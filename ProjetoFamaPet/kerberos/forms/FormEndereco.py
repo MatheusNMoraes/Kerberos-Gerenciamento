@@ -1,43 +1,53 @@
-from datetime import date
 from django import forms
-from . import models
+from ..models.endereco import Endereco
+
 
 class EnderecoForm(forms.ModelForm):
     class Meta:
-        model = models.Endereco
-        fields = ['rua', 'numero', 'bairro', 'cep']
+        model = Endereco
+        fields = ['cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf']
         widgets = {
-            'rua': forms.TextInput(attrs={
-                'placeholder': 'Rua/Avenida',
-                'autocomplete': 'street-address',
+            'cep': forms.TextInput(attrs={
+                'class': 'form-control custom-input',
+                'placeholder': '00000-000',
+                'id': 'id_cep',
+                'maxlength': '9',
+                'autocomplete': 'postal-code',
             }),
-            'numero': forms.NumberInput(attrs={
-                'placeholder': 'Número',
-                'min': 1,
+            'logradouro': forms.TextInput(attrs={
+                'class': 'form-control custom-input',
+                'placeholder': 'Rua / Avenida',
+                'id': 'id_logradouro',
+                'autocomplete': 'address-line1',
+            }),
+            'numero': forms.TextInput(attrs={
+                'class': 'form-control custom-input',
+                'placeholder': 'Ex: 123 ou S/N',
+                'id': 'id_numero',
+            }),
+            'complemento': forms.TextInput(attrs={
+                'class': 'form-control custom-input',
+                'placeholder': 'Apto, Bloco, Casa 2 (Opcional)',
+                'id': 'id_complemento',
             }),
             'bairro': forms.TextInput(attrs={
+                'class': 'form-control custom-input',
                 'placeholder': 'Bairro',
-                'autocomplete': 'address-level2',
+                'id': 'id_bairro',
             }),
-            'cep': forms.TextInput(attrs={
-                'placeholder': '00000-000',
-                'maxlength': 9,
-                'autocomplete': 'postal-code',
+            'cidade': forms.TextInput(attrs={
+                'class': 'form-control custom-input',
+                'placeholder': 'Cidade',
+                'id': 'id_cidade',
+            }),
+            'uf': forms.Select(attrs={
+                'class': 'form-select custom-input',
+                'id': 'id_uf',
             }),
         }
 
     def clean_cep(self):
-        cep = "".join(filter(str.isdigit, self.cleaned_data["cep"]))
-
+        cep = "".join(filter(str.isdigit, self.cleaned_data.get("cep", "")))
         if len(cep) != 8:
-            raise forms.ValidationError("O CEP deve conter 8 dígitos.")
+            raise forms.ValidationError("O CEP deve conter exatamente 8 dígitos.")
         return f"{cep[:5]}-{cep[5:]}"
-
-    def clean_numero(self):
-        numero = self.cleaned_data.get("numero")
-
-        if numero is not None and numero <= 0:
-            raise forms.ValidationError(
-                "O número deve ser maior que zero."
-            )
-        return numero

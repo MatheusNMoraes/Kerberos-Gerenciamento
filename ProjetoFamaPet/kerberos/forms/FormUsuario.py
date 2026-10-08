@@ -1,6 +1,6 @@
-from datetime import date
 from django import forms
 from ..models.usuario import Usuario
+
 
 class NomeValidationMixin:
     def clean_nome(self):
@@ -10,6 +10,7 @@ class NomeValidationMixin:
                 "O nome deve ter pelo menos 3 caracteres."
             )
         return nome
+
 
 class UsuarioForm(NomeValidationMixin, forms.ModelForm):
     class Meta:
@@ -36,17 +37,9 @@ class UsuarioForm(NomeValidationMixin, forms.ModelForm):
         }
 
     def clean_email(self):
-        email = self.cleaned_data.get('email', '').strip().lower()
-        
-        # Corrigido: Alterado 'models.Usuario' para 'Usuario'
-        query = Usuario.objects.filter(email=email)
-        if self.instance and self.instance.pk:
-            query = query.exclude(pk=self.instance.pk)
-
-        if query.exists():
-            raise forms.ValidationError(
-                "Já existe um usuário cadastrado com este e-mail."
-            )
+        email = self.cleaned_data.get('email', '')
+        if email:
+            return email.strip().lower()
         return email
 
     def clean_telefone(self):
@@ -55,6 +48,12 @@ class UsuarioForm(NomeValidationMixin, forms.ModelForm):
 
         if len(numeros) not in (10, 11):
             raise forms.ValidationError(
-                "Informe um telefone válido com DDD."
+                "Informe um telefone válido com DDD (10 ou 11 dígitos)."
             )
-        return numeros
+
+        if len(numeros) == 11:
+            return f"({numeros[:2]}) {numeros[2:7]}-{numeros[7:]}"
+        elif len(numeros) == 10:
+            return f"({numeros[:2]}) {numeros[2:6]}-{numeros[6:]}"
+
+        return telefone

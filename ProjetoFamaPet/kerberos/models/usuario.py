@@ -1,4 +1,3 @@
-# models/usuario.py
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -11,11 +10,12 @@ class Usuario(models.Model):
     )
 
     nome = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    telefone = models.CharField(max_length=20, validators=[telefone_validator])  # was 15
+    email = models.EmailField(unique=True, db_index=True)
+    telefone = models.CharField(max_length=20, validators=[telefone_validator])
+    
     endereco = models.ForeignKey(
         "Endereco",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="usuarios",
         null=True,
         blank=True
@@ -32,19 +32,19 @@ class Usuario(models.Model):
     def clean(self):
         super().clean()
 
+        nome_validacao = self.nome.strip() if self.nome else ""
+        if len(nome_validacao) < 3:
+            raise ValidationError(
+                {"nome": "O nome deve ter pelo menos 3 caracteres."}
+            )
+
+    def save(self, *args, **kwargs):
         if self.nome:
             self.nome = self.nome.strip()
-            if len(self.nome) < 3:
-                raise ValidationError(
-                    {"nome": "O nome deve ter pelo menos 3 caracteres."}
-                )
-
         if self.email:
             self.email = self.email.strip().lower()
-
         if self.telefone:
             self.telefone = self.telefone.strip()
 
-    def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)

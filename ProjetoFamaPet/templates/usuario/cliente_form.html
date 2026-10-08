@@ -1,0 +1,191 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-4">
+    <div class="content-wrapper mx-auto" style="max-width: 900px;">
+        
+        <!-- Cabeçalho e Navegação -->
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'listar_clientes' %}" class="text-decoration-none text-muted small">Clientes</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">{{ titulo }}</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-0 fs-2">{{ titulo }}</h2>
+                <p class="text-muted small mb-0">Preencha os campos abaixo para salvar as informações de usuário e endereço.</p>
+            </div>
+            <a href="{% url 'listar_clientes' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i>
+                <span>Voltar à Lista</span>
+            </a>
+        </div>
+
+        <!-- Alertas do Django -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Cartão do Formulário -->
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- SEÇÃO 1: Dados do Usuário -->
+                    <div class="mb-4 pb-4 border-bottom">
+                        <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                            <i class="bi bi-person-vcard fs-4"></i>
+                            <h5 class="fw-bold mb-0 text-dark">Dados Pessoais</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="{{ form.nome.id_for_label }}" class="form-label fw-semibold text-secondary small">Nome Completo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" name="{{ form.nome.html_name }}" id="{{ form.nome.id_for_label }}" value="{{ form.nome.value|default:'' }}" class="form-control {% if form.nome.errors %}is-invalid{% endif %}" required>
+                                </div>
+                                {% if form.nome.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">{{ form.nome.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold text-secondary small">E-mail</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" name="{{ form.email.html_name }}" id="{{ form.email.id_for_label }}" value="{{ form.email.value|default:'' }}" class="form-control {% if form.email.errors %}is-invalid{% endif %}" required>
+                                </div>
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">{{ form.email.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.telefone.id_for_label }}" class="form-label fw-semibold text-secondary small">Telefone / WhatsApp</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                    <input type="text" name="{{ form.telefone.html_name }}" id="{{ form.telefone.id_for_label }}" value="{{ form.telefone.value|default:'' }}" class="form-control {% if form.telefone.errors %}is-invalid{% endif %}">
+                                </div>
+                                {% if form.telefone.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">{{ form.telefone.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEÇÃO 2: Dados do Endereço -->
+                    <div class="mb-4 pb-2">
+                        <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                            <i class="bi bi-geo-alt fs-4"></i>
+                            <h5 class="fw-bold mb-0 text-dark">Endereço</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="{{ endereco_form.cep.id_for_label }}" class="form-label fw-semibold text-secondary small">CEP</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-mailbox"></i></span>
+                                    <input type="text" name="{{ endereco_form.cep.html_name }}" id="{{ endereco_form.cep.id_for_label }}" value="{{ endereco_form.cep.value|default:'' }}" class="form-control {% if endereco_form.cep.errors %}is-invalid{% endif %}">
+                                </div>
+                                {% if endereco_form.cep.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">{{ endereco_form.cep.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ endereco_form.logradouro.id_for_label }}" class="form-label fw-semibold text-secondary small">Rua / Logradouro</label>
+                                <input type="text" name="{{ endereco_form.logradouro.html_name }}" id="{{ endereco_form.logradouro.id_for_label }}" value="{{ endereco_form.logradouro.value|default:'' }}" class="form-control {% if endereco_form.logradouro.errors %}is-invalid{% endif %}">
+                                {% if endereco_form.logradouro.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">{{ endereco_form.logradouro.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="{{ endereco_form.numero.id_for_label }}" class="form-label fw-semibold text-secondary small">Número</label>
+                                <input type="text" name="{{ endereco_form.numero.html_name }}" id="{{ endereco_form.numero.id_for_label }}" value="{{ endereco_form.numero.value|default:'' }}" class="form-control {% if endereco_form.numero.errors %}is-invalid{% endif %}">
+                                {% if endereco_form.numero.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">{{ endereco_form.numero.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ endereco_form.complemento.id_for_label }}" class="form-label fw-semibold text-secondary small">Complemento</label>
+                                <input type="text" name="{{ endereco_form.complemento.html_name }}" id="{{ endereco_form.complemento.id_for_label }}" value="{{ endereco_form.complemento.value|default:'' }}" class="form-control">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="{{ endereco_form.bairro.id_for_label }}" class="form-label fw-semibold text-secondary small">Bairro</label>
+                                <input type="text" name="{{ endereco_form.bairro.html_name }}" id="{{ endereco_form.bairro.id_for_label }}" value="{{ endereco_form.bairro.value|default:'' }}" class="form-control {% if endereco_form.bairro.errors %}is-invalid{% endif %}">
+                                {% if endereco_form.bairro.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">{{ endereco_form.bairro.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="{{ endereco_form.cidade.id_for_label }}" class="form-label fw-semibold text-secondary small">Cidade</label>
+                                <input type="text" name="{{ endereco_form.cidade.html_name }}" id="{{ endereco_form.cidade.id_for_label }}" value="{{ endereco_form.cidade.value|default:'' }}" class="form-control {% if endereco_form.cidade.errors %}is-invalid{% endif %}">
+                                {% if endereco_form.cidade.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">{{ endereco_form.cidade.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="{{ endereco_form.uf.id_for_label }}" class="form-label fw-semibold text-secondary small">UF</label>
+                                <input type="text" name="{{ endereco_form.uf.html_name }}" id="{{ endereco_form.uf.id_for_label }}" value="{{ endereco_form.uf.value|default:'' }}" class="form-control {% if endereco_form.uf.errors %}is-invalid{% endif %}" maxlength="2">
+                                {% if endereco_form.uf.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small">{{ endereco_form.uf.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
+                        <a href="{% url 'listar_clientes' %}" class="btn btn-light px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-4 d-inline-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Salvar Registro</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Autocompletar CEP com a API ViaCEP -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cepInput = document.getElementById('{{ endereco_form.cep.id_for_label }}');
+    if (cepInput) {
+        cepInput.addEventListener('blur', function() {
+            let cep = this.value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            document.getElementById('{{ endereco_form.logradouro.id_for_label }}').value = data.logradouro || '';
+                            document.getElementById('{{ endereco_form.bairro.id_for_label }}').value = data.bairro || '';
+                            document.getElementById('{{ endereco_form.cidade.id_for_label }}').value = data.localidade || '';
+                            document.getElementById('{{ endereco_form.uf.id_for_label }}').value = data.uf || '';
+                            document.getElementById('{{ endereco_form.numero.id_for_label }}').focus();
+                        }
+                    });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
