@@ -55,6 +55,11 @@
                 <form method="POST" novalidate id="petEditForm">
                     {% csrf_token %}
 
+                    {# Renderização do campo de usuário oculto quando for Cliente Comum ou quando desabilitado #}
+                    {% if form.usuario and form.usuario.is_hidden %}
+                        {{ form.usuario }}
+                    {% endif %}
+
                     <div class="form-section mb-4 pb-4 border-bottom">
                         <div class="d-flex align-items-center gap-2 mb-3 text-dark">
                             <div class="section-icon-badge">
@@ -64,6 +69,35 @@
                         </div>
 
                         <div class="row g-3">
+
+                            {# Campo Tutor / Cliente - Exibido apenas se for visível para Staff/Admin #}
+                            {% if form.usuario and not form.usuario.is_hidden %}
+                                <div class="col-12 mb-2">
+                                    <label for="{{ form.usuario.id_for_label }}" class="form-label fw-semibold text-secondary small">
+                                        {{ form.usuario.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text custom-input-group-text"><i class="bi bi-person-badge"></i></span>
+                                        <select name="{{ form.usuario.html_name }}" 
+                                                id="{{ form.usuario.id_for_label }}" 
+                                                class="form-select custom-input {% if form.usuario.errors %}is-invalid{% endif %}"
+                                                {% if form.usuario.field.disabled %}disabled{% endif %}>
+                                            {% for choice in form.usuario.field.choices %}
+                                                <option value="{{ choice.0 }}" {% if choice.0|slugify == form.usuario.value|slugify or choice.0 == form.usuario.value %}selected{% endif %}>
+                                                    {{ choice.1 }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    {% if form.usuario.errors %}
+                                        <div class="invalid-feedback d-block mt-1 small">
+                                            <i class="bi bi-exclamation-circle me-1"></i>{{ form.usuario.errors|join:", " }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <!-- Nome -->
                             <div class="col-md-6">
                                 <label for="{{ form.nome.id_for_label }}" class="form-label fw-semibold text-secondary small">
                                     Nome do Pet <span class="text-danger">*</span>
@@ -84,6 +118,7 @@
                                 {% endif %}
                             </div>
 
+                            <!-- Data de Nascimento -->
                             <div class="col-md-6">
                                 <label for="{{ form.data_de_nascimento.id_for_label }}" class="form-label fw-semibold text-secondary small">
                                     Data de Nascimento
@@ -104,6 +139,7 @@
                                 {% endif %}
                             </div>
 
+                            <!-- Raça -->
                             <div class="col-md-6">
                                 <label for="{{ form.raca.id_for_label }}" class="form-label fw-semibold text-secondary small">
                                     Raça
@@ -124,6 +160,7 @@
                                 {% endif %}
                             </div>
 
+                            <!-- Porte -->
                             <div class="col-md-6">
                                 <label for="{{ form.porte.id_for_label }}" class="form-label fw-semibold text-secondary small">
                                     Porte
@@ -134,7 +171,7 @@
                                             id="{{ form.porte.id_for_label }}" 
                                             class="form-select custom-input {% if form.porte.errors %}is-invalid{% endif %}">
                                         {% for choice in form.porte.field.choices %}
-                                            <option value="{{ choice.0 }}" {% if choice.0 == form.porte.value %}selected{% endif %}>
+                                            <option value="{{ choice.0 }}" {% if choice.0|slugify == form.porte.value|slugify or choice.0 == form.porte.value %}selected{% endif %}>
                                                 {{ choice.1 }}
                                             </option>
                                         {% endfor %}
@@ -147,6 +184,7 @@
                                 {% endif %}
                             </div>
 
+                            <!-- Observação -->
                             <div class="col-12">
                                 <label for="{{ form.observacao.id_for_label }}" class="form-label fw-semibold text-secondary small">
                                     Observações

@@ -24,13 +24,25 @@
             </a>
         </div>
 
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-4 custom-alert shadow-sm" role="alert">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
         <div class="card border-0 shadow-sm form-card overflow-hidden">
             <div class="card-body p-4 p-md-5">
                 <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-center gap-3">
                     <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
                     <div>
                         <h6 class="fw-bold mb-1">Atenção!</h6>
-                        <p class="mb-0 small text-secondary">Você está prestes a remover o cadastro do pet do sistema.</p>
+                        <p class="mb-0 small text-secondary">Você está prestes a remover permanentemente o cadastro de <strong>{{ pet.nome }}</strong> do sistema.</p>
                     </div>
                 </div>
 
@@ -44,6 +56,19 @@
 
                     <div class="bg-light p-3 rounded-3">
                         <div class="row g-3">
+                            {% if pet.usuario %}
+                            <div class="col-12 border-bottom pb-2 mb-1">
+                                <span class="text-muted small d-block">Tutor / Cliente Responsável:</span>
+                                <strong class="text-dark d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-person-badge text-muted"></i>
+                                    {{ pet.usuario.get_full_name|default:pet.usuario.username }}
+                                    {% if pet.usuario.email %}
+                                        <span class="text-muted fw-normal">({{ pet.usuario.email }})</span>
+                                    {% endif %}
+                                </strong>
+                            </div>
+                            {% endif %}
+
                             <div class="col-12 col-md-6">
                                 <span class="text-muted small d-block">Nome do Pet:</span>
                                 <strong class="text-dark">{{ pet.nome }}</strong>

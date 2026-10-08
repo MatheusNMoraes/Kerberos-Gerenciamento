@@ -24,14 +24,14 @@
                value="{{ data_selecionada|date:'Y-m-d' }}" onchange="this.form.submit()">
       </form>
 
-      <a href="#" class="btn btn-cta d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" style="font-size: 0.85rem; padding: 8px 16px;">
+      <a href="{%url 'criar_agendamento'%}" class="btn btn-cta d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" style="font-size: 0.85rem; padding: 8px 16px;">
         <i class="bi bi-person-plus-fill"></i> Novo Agendamento
       </a>
 
-      <a href="#" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center" title="Editar">
+      <a href="{%url 'editar_agendamento'%}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center" title="Editar">
         <i class="bi bi-pencil-square action-icon"></i>
       </a>
-      <a href="#" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center" title="Excluir">
+      <a href="{%url 'deletar_agendamento'%}" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center" title="Excluir">
         <i class="bi bi-trash action-icon delete"></i>
       </a>
     </div>

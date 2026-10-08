@@ -19,8 +19,8 @@
                 <img src="{% static 'img/FamaPetLogo.svg' %}" alt="Logo FamaPet" class="img-fluid" style="height: 35px; max-height: 40px;">
             </a>
             <div class="d-flex align-items-center gap-2 gap-md-3">
-                <a href="#" class="text-dark text-decoration-none small fw-medium px-2 py-1">Entrar</a>
-                <a href="#" class="btn btn-dark btn-sm px-3 py-2 rounded-pill fw-semibold">Cadastre-se</a>
+                <a href="{% url 'login'%}" class="text-dark text-decoration-none small fw-medium px-2 py-1">Entrar</a>
+                <a href="{% url 'cadastro'%}" class="btn btn-dark btn-sm px-3 py-2 rounded-pill fw-semibold">Cadastre-se</a>
             </div>
         </div>
     </header>
@@ -37,7 +37,7 @@
                 </div>
                 <div class="pt-4 col-lg-6 text-center text-lg-end">
                     <img src="{% static 'img/dog-home.png' %}" alt="Cão da FamaPet" class="img-fluid"
-                        style="max-height: 380px;">
+                        style="max-height: 400px;">
                 </div>
             </div>
         </div>
