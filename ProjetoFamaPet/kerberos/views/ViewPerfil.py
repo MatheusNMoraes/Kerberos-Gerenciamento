@@ -1,27 +1,44 @@
-from django.shortcuts import render,redirect
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from django.contrib import messages
-from ..forms.FormUsuario import UsuarioForm
-from ..models.usuario import Usuario
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 
+from kerberos.forms.FormUsuario import UsuarioForm
+
+
+@login_required
 def perfil(request):
-    
-    usuario = Usuario.objects.first()
-    
-    if not usuario:
-        messages.error(request, 'Nenhum usuário cadastrado.')
-        return redirect('home') # Use o nome da URL mapeada no urls.py, ex: name='home'
-    
-    if request.method == 'POST':
-        form = UsuarioForm(request.POST, instance=usuario)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Perfil atualizado com sucesso!')
-            return redirect('perfil') # Use o nome da URL desta página, ex: name='perfil'
-    else:
-        form = UsuarioForm(instance=usuario)
+    usuario = request.user
 
-    context = {
-        'form': form,
-    }
-    return render(request, 'perfil/perfil.html', context)
+    # Inicializa os formulários com os dados atuais
+    form_usuario = UsuarioForm(instance=usuario)
+    form_senha = PasswordChangeForm(user=usuario)
+
+    if request.method == 'POST':
+        # 1. Se clicou em "Salvar Dados Pessoais"
+        if 'btn_atualizar_dados' in request.POST:
+            form_usuario = UsuarioForm(request.POST, instance=usuario)
+            if form_usuario.is_valid():
+                form_usuario.save()
+                messages.success(request, 'Dados pessoais atualizados com sucesso!')
+                return redirect('perfil')
+            else:
+                messages.error(request, 'Por favor, corrija os erros nos dados pessoais.')
+
+        # 2. Se clicou em "Alterar Senha"
+        elif 'btn_alterar_senha' in request.POST:
+            form_senha = PasswordChangeForm(user=usuario, data=request.POST)
+            if form_senha.is_valid():
+                user = form_senha.save()
+                # Impede que a sessão caia após alterar a senha
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Sua senha foi alterada com sucesso!')
+                return redirect('perfil')
+            else:
+                messages.error(request, 'Erro ao alterar a senha. Verifique os requisitos.')
+
+    return render(request, 'perfil/perfil.html', {
+        'form_usuario': form_usuario,
+        'form_senha': form_senha,
+    })

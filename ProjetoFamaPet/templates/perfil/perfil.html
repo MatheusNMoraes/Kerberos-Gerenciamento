@@ -1,59 +1,105 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
-{% block title %} Perfil - Fama Pet{% endblock %}
-
-{% block nav_perfil%}active{% endblock %}
+{% block title %}Meu Perfil — Fama Pet{% endblock %}
+{% block nav_perfil %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Editar Meu Perfil</h4>
-                </div>
-                
-                <div class="card-body">
-                    
-                    <!-- Exibição de mensagens do Django (ex: "Perfil atualizado com sucesso!") -->
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+<div class="container my-4 my-md-5 px-3" style="max-width: 650px;">
 
-                    <!-- Formulário -->
-                    <form method="POST" novalidate>
-                        {% csrf_token %}
+  <!-- Exibição de Alertas de Sucesso / Erro -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm mb-4" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
 
-                        {{ form.as_p }}
-                      
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                            <a href="{% url 'perfil' %}" class="btn btn-secondary me-md-2">Voltar</a>
-                            <button type="submit" class="btn btn-success">Salvar Alterações</button>
-                        </div>
-                    </form>
-
-                </div>
-            </div>
-
-        </div>
+  <!-- CARTÃO 1: DADOS PESSOAIS -->
+  <div class="card shadow-sm border-0 rounded-3 mb-4 overflow-hidden">
+    <div class="card-header bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+      <h3 class="h5 fw-bold mb-0"><i class="bi bi-person-circle text-warning me-2"></i>Meus Dados</h3>
+      
+      <!-- Identificação visual do tipo de perfil -->
+      {% if user.is_staff or user.is_superuser %}
+        <span class="badge bg-danger">Administrador</span>
+      {% else %}
+        <span class="badge bg-secondary">Cliente</span>
+      {% endif %}
     </div>
-</div>
 
-<!-- Script rápido para adicionar a classe 'form-control' nos inputs do Django -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const inputs = document.querySelectorAll("input, select, textarea");
-        inputs.forEach(input => {
-            if (!input.classList.contains('form-control') && !input.classList.contains('form-check-input')) {
-                input.classList.add('form-control');
-            }
-        });
-    });
-</script>
+    <div class="card-body p-4">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="{{ form_usuario.nome.id_for_label }}" class="form-label fw-bold">Nome Completo</label>
+          {{ form_usuario.nome }}
+          {% if form_usuario.nome.errors %}
+            <div class="text-danger small mt-1">{{ form_usuario.nome.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form_usuario.email.id_for_label }}" class="form-label fw-bold">E-mail</label>
+          {{ form_usuario.email }}
+          {% if form_usuario.email.errors %}
+            <div class="text-danger small mt-1">{{ form_usuario.email.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label for="{{ form_usuario.telefone.id_for_label }}" class="form-label fw-bold">Telefone / WhatsApp</label>
+          {{ form_usuario.telefone }}
+          {% if form_usuario.telefone.errors %}
+            <div class="text-danger small mt-1">{{ form_usuario.telefone.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" name="btn_atualizar_dados" class="btn btn-warning text-white fw-bold py-2 shadow-sm">
+          <i class="bi bi-save me-1"></i> Salvar Dados Pessoais
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CARTÃO 2: ALTERAÇÃO DE SENHA -->
+  <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+    <div class="card-header bg-light p-3 border-bottom">
+      <h3 class="h5 fw-bold mb-0"><i class="bi bi-shield-lock text-warning me-2"></i>Alterar Senha</h3>
+    </div>
+
+    <div class="card-body p-4">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        {% for field in form_senha %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+            <input type="password" 
+                   name="{{ field.name }}" 
+                   id="{{ field.id_for_label }}"
+                   class="form-control {% if field.errors %}is-invalid{% endif %}" 
+                   required>
+            
+            {% if field.help_text %}
+              <div class="form-text text-muted small" style="font-size: 0.75rem;">{{ field.help_text }}</div>
+            {% endif %}
+            
+            {% if field.errors %}
+              <div class="invalid-feedback">{{ field.errors.0 }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <button type="submit" name="btn_alterar_senha" class="btn btn-outline-danger fw-bold py-2 shadow-sm">
+          <i class="bi bi-key me-1"></i> Atualizar Senha
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
 {% endblock %}

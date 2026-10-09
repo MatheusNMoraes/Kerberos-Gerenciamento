@@ -65,6 +65,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+AUTH_USER_MODEL = 'kerberos.Usuario'
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'listar_pets'
 LOGOUT_REDIRECT_URL = 'home'
 
 LANGUAGE_CODE = 'pt-br'
