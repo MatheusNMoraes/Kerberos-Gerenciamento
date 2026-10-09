@@ -1,10 +1,12 @@
-from datetime import date
 from django import forms
-from django.contrib.auth.models import User
+from django.utils import timezone
+
 from ..models.pet import Pet
+from ..models.usuario import Usuario 
 
 
 class NomeValidationMixin:
+    """Mixin para reutilização da regra de validação de nome mínimo."""
     def clean_nome(self):
         nome = self.cleaned_data.get("nome", "").strip()
         if len(nome) < 3:
@@ -22,23 +24,22 @@ class PetForm(NomeValidationMixin, forms.ModelForm):
             'nome': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Nome do pet',
-                'autocomplete': 'name',
+                'autocomplete': 'off',
             }),
             'data_de_nascimento': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date',
-                'max': date.today().isoformat(),
             }),
             'raca': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Raça do pet',
+                'placeholder': 'Raça do pet (ex: Poodle, SRD)',
             }),
             'porte': forms.Select(attrs={
                 'class': 'form-select',
             }),
             'observacao': forms.Textarea(attrs={
                 'class': 'form-control',
-                'placeholder': 'Observações sobre o pet',
+                'placeholder': 'Observações médicas, comportamento ou alimentação...',
                 'rows': 4,
             }),
         }
@@ -47,33 +48,34 @@ class PetForm(NomeValidationMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
 
-        if 'usuario' in self.fields:
-            if user and user.is_staff:
-                self.fields['usuario'].queryset = User.objects.all().order_by('first_name', 'username')
+        # Define limite de data no HTML dinamicamente a cada requisição
+        if 'data_de_nascimento' in self.fields:
+            self.fields['data_de_nascimento'].widget.attrs['max'] = timezone.now().date().isoformat()
+
+        # Controle de Permissão do Campo Tutor
+        if user and user.is_staff:
+            if 'usuario' in self.fields:
+                # Carrega todos os cadastros de Usuario ordenados por nome
+                self.fields['usuario'].queryset = Usuario.objects.all().order_by('nome')
                 self.fields['usuario'].label = "Tutor / Cliente"
                 self.fields['usuario'].empty_label = "Selecione um Tutor / Cliente"
                 self.fields['usuario'].widget = forms.Select(attrs={'class': 'form-select', 'required': 'required'})
-                self.fields['usuario'].label_from_instance = lambda obj: (
-                    f"{obj.get_full_name()} ({obj.username})" if obj.get_full_name() else obj.username
-                )
-            else:
-                self.fields['usuario'].required = False
-                self.fields['usuario'].widget = forms.HiddenInput()
-
-    def clean_data_de_nascimento(self):
-        data_de_nascimento = self.cleaned_data.get("data_de_nascimento")
-        if data_de_nascimento and data_de_nascimento > date.today():
-            raise forms.ValidationError(
-                "A data de nascimento não pode ser no futuro."
-            )
-        return data_de_nascimento
+                
+                # Exibe o Nome e E-mail do Tutor no dropdown
+                self.fields['usuario'].label_from_instance = lambda obj: f"{obj.nome} ({obj.email})"
+        else:
+            # Segurança: Remove o campo para usuários comuns
+            self.fields.pop('usuario', None)
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        # Se for cliente comum (não staff) criando pet, vincula automaticamente ao seu próprio usuário
-        if self.user and not self.user.is_staff and not instance.usuario_id:
-            instance.usuario = self.user
-        
+
+        # Se não for staff, associa ao perfil de Usuario correspondente ao e-mail do login
+        if self.user and not self.user.is_staff and not instance.pk:
+            usuario_perfil = Usuario.objects.filter(email=self.user.email).first()
+            if usuario_perfil:
+                instance.usuario = usuario_perfil
+
         if commit:
             instance.save()
             self.save_m2m()

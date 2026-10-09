@@ -1,0 +1,75 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/style_agenda.css' %}">
+{% endblock %}
+
+{% block titulo %}{{ titulo_pagina }} — FamaPet{% endblock %}
+{% block nav_agendamentos %}active{% endblock %}
+
+{% block content %}
+<div class="container my-4 my-md-5 px-3" style="max-width: 600px;">
+
+  <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+    <div class="card-header bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+      <h3 class="h5 fw-bold mb-0">{{ titulo_pagina }}</h3>
+      <a href="{% url 'agendamentos' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+    </div>
+
+    <div class="card-body p-4">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <!-- Pet -->
+        <div class="mb-3">
+          <label for="{{ form.pet.id_for_label }}" class="form-label fw-bold">Pet</label>
+          {{ form.pet }}
+          {% if form.pet.errors %}
+            <div class="text-danger small mt-1">{{ form.pet.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Data e Horário -->
+        <div class="mb-3">
+          <label for="{{ form.data.id_for_label }}" class="form-label fw-bold">Data e Horário</label>
+          {{ form.data }}
+          {% if form.data.errors %}
+            <div class="text-danger small mt-1">{{ form.data.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Serviços -->
+        <div class="mb-4">
+          <label class="form-label fw-bold">Serviços Desejados</label>
+          <div class="border rounded p-3 bg-light">
+            {{ form.servicos }}
+          </div>
+          {% if form.servicos.errors %}
+            <div class="text-danger small mt-1">{{ form.servicos.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Botão Dinâmico -->
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-warning text-white fw-bold py-2 shadow-sm">
+            <i class="bi {% if agendamento %}bi-save{% else %}bi-check-circle{% endif %} me-1"></i> {{ botao_texto }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

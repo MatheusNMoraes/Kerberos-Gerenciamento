@@ -9,13 +9,23 @@
     <div>
         <h2 class="fw-bold mb-4 brand-font" style="font-size: 2rem;">Lista de Pets</h2>
 
+        <!-- Alertas de Sucesso / Erro do Django -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <form method="GET" class="d-flex">
                 <div class="input-group" style="width: 280px;">
                     <span class="input-group-text bg-white border-end-0 pe-1" style="border-radius: var(--raio) 0 0 var(--raio); border-color: var(--cinza-input);">
                         <i class="bi bi-search text-muted" style="font-size: 0.9rem;"></i>
                     </span>
-                    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control border-start-0 ps-1" placeholder="Procurar pet">
+                    <input type="text" name="q" value="{{ query|default:'' }}" class="form-control border-start-0 ps-1" placeholder="Procurar pet">
                 </div>
             </form>
 
@@ -29,32 +39,71 @@
                 <thead>
                     <tr class="text-muted border-bottom" style="font-size: 0.9rem;">
                         <th class="fw-bold ps-3 pb-3">Nome</th>
+                        {% if request.user.is_staff %}
+                            <th class="fw-bold pb-3">Tutor / Cliente</th>
+                        {% endif %}
                         <th class="fw-bold pb-3">Raça</th>
                         <th class="fw-bold pb-3">Porte</th>
                         <th class="fw-bold pb-3">Nascimento</th>
-                        <th class="fw-bold text-center pb-3">Ação</th>
+                        <th class="fw-bold text-center pb-3">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for pet in pets %}
                     <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff;">
                         <td class="fw-bold py-3 ps-3" style="border-radius: var(--raio) 0 0 var(--raio);">{{ pet.nome }}</td>
+                        
+                        {% if request.user.is_staff %}
+                            <td class="py-3">{{ pet.usuario.nome|default:pet.usuario }}</td>
+                        {% endif %}
+
                         <td class="py-3">{{ pet.raca|default:"Não informada" }}</td>
                         <td class="py-3">{{ pet.get_porte_display|default:pet.porte }}</td>
                         <td class="py-3">{{ pet.data_de_nascimento|date:"d/m/Y"|default:"-" }}</td>
                         <td class="text-center py-3" style="border-radius: 0 var(--raio) var(--raio) 0;">
-                            <a href="{% url 'editar_pet' pet.pk %}" class="text-decoration-none me-2" title="Editar"><i class="bi bi-pencil-square action-icon"></i></a>
-                            <a href="{% url 'deletar_pet' pet.pk %}" class="text-decoration-none" title="Excluir"><i class="bi bi-trash action-icon delete"></i></a>
+                            <!-- Botão Editar -->
+                            <a href="{% url 'editar_pet' pet.pk %}" class="text-decoration-none me-2" title="Editar">
+                                <i class="bi bi-pencil-square action-icon fs-5"></i>
+                            </a>
+
+                            <!-- Formulário POST Correto para Deletar -->
+                            <form action="{% url 'deletar_pet' pet.id %}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja remover o pet {{ pet.nome }}?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link p-0 text-decoration-none border-0 bg-transparent" title="Excluir">
+                                    <i class="bi bi-trash action-icon text-danger fs-5"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">Nenhum pet encontrado.</td>
+                        <td colspan="{% if request.user.is_staff %}6{% else %}5{% endif %}" class="text-center py-4 text-muted">
+                            Nenhum pet encontrado.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <!-- Componente de Paginação (se aplicável) -->
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; Primeira</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a></li>
+                {% endif %}
+
+                <li class="page-item active"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Próxima</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">Última &raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

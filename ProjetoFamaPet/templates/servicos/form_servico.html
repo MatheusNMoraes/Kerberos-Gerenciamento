@@ -1,0 +1,69 @@
+{% extends 'base/base.html' %}
+
+{% block titulo %}{{ titulo_pagina }} — FamaPet{% endblock %}
+
+{% block content %}
+<div class="container my-4 my-md-5 px-3" style="max-width: 600px;">
+
+  <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+    <div class="card-header bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+      <h3 class="h5 fw-bold mb-0">{{ titulo_pagina }}</h3>
+      <a href="{% url 'listar_servicos' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+    </div>
+
+    <div class="card-body p-4">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="{{ form.nome.id_for_label }}" class="form-label fw-bold">Nome do Serviço</label>
+          {{ form.nome }}
+          {% if form.nome.errors %}
+            <div class="text-danger small mt-1">{{ form.nome.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.descricao.id_for_label }}" class="form-label fw-bold">Descrição</label>
+          {{ form.descricao }}
+          {% if form.descricao.errors %}
+            <div class="text-danger small mt-1">{{ form.descricao.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.valor.id_for_label }}" class="form-label fw-bold">Preço (R$)</label>
+            {{ form.valor }}
+            {% if form.valor.errors %}
+              <div class="text-danger small mt-1">{{ form.valor.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.duracao_minutos.id_for_label }}" class="form-label fw-bold">Duração (Minutos)</label>
+            {{ form.duracao_minutos }}
+            {% if form.duracao_minutos.errors %}
+              <div class="text-danger small mt-1">{{ form.duracao_minutos.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-check form-switch mb-4">
+          {{ form.ativo }}
+          <label class="form-check-label fw-bold" for="{{ form.ativo.id_for_label }}">Serviço Ativo</label>
+        </div>
+
+        <div class="d-grid">
+          <button type="submit" class="btn btn-warning text-white fw-bold py-2 shadow-sm">
+            <i class="bi bi-check-circle me-1"></i> {{ botao_texto }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

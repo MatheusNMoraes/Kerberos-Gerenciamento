@@ -9,102 +9,153 @@
 {% block nav_agendamentos %}active{% endblock %}
 
 {% block content %}
-<div class="container my-4 my-md-5 px-3" style="max-width: 650px;">
+<div class="container my-4 my-md-5 px-3" style="max-width: 750px;">
 
+  <!-- Exibição de Alertas de Sucesso / Erro do Django -->
+  {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Cabeçalho e Filtro de Data -->
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div class="w-100 w-sm-auto">
-      <h2 class="fw-bold mb-1 h3">Sua agenda</h2>
-      <p class="text-muted small mb-0">Consulte os agendamentos de banho e tosa por dia</p>
+      <h2 class="fw-bold mb-1 h3">Agenda de Serviços</h2>
+      <p class="text-muted small mb-0">Acompanhe os agendamentos cadastrados por dia</p>
     </div>
 
     <div class="d-flex align-items-center flex-wrap gap-2 w-100 w-sm-auto">
-      <form method="GET" class="date-picker-btn px-3 py-2 d-flex align-items-center rounded border flex-grow-1 flex-sm-grow-0">
+      <form method="GET" class="date-picker-btn px-3 py-2 d-flex align-items-center rounded border flex-grow-1 flex-sm-grow-0 bg-white shadow-sm">
         <i class="bi bi-calendar3 text-warning me-2"></i>
         <input type="date" name="data" class="form-control form-control-sm border-0 p-0 shadow-none w-100" 
                value="{{ data_selecionada|date:'Y-m-d' }}" onchange="this.form.submit()">
       </form>
 
-      <a href="{%url 'criar_agendamento'%}" class="btn btn-cta d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" style="font-size: 0.85rem; padding: 8px 16px;">
-        <i class="bi bi-person-plus-fill"></i> Novo Agendamento
-      </a>
-
-      <a href="{%url 'editar_agendamento'%}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center" title="Editar">
-        <i class="bi bi-pencil-square action-icon"></i>
-      </a>
-      <a href="{%url 'deletar_agendamento'%}" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center" title="Excluir">
-        <i class="bi bi-trash action-icon delete"></i>
+      <a href="{% url 'criar_agendamento' %}" class="btn btn-warning text-white fw-bold d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0 shadow-sm" style="font-size: 0.85rem; padding: 8px 16px;">
+        <i class="bi bi-plus-lg"></i> Novo Agendamento
       </a>
     </div>
   </div>
 
-  <div class="custom-card mb-4">
-    <div class="card-header-custom p-3 d-flex justify-content-between align-items-center">
+  <!-- TURNO: MANHÃ -->
+  <div class="card shadow-sm border-0 mb-4 rounded-3 overflow-hidden">
+    <div class="bg-light p-3 d-flex justify-content-between align-items-center border-bottom">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-sun text-warning fs-5"></i>
-        <span class="text-period fw-bold">Manhã</span>
+        <span class="fw-bold">Manhã</span>
       </div>
-      <small class="text-muted fw-bold">09h-12h</small>
+      <small class="text-muted fw-bold">09h - 12h</small>
     </div>
     <div class="p-3">
-      {% for agendamentos in agendamentos_manha %}
-        <div class="d-flex align-items-start align-items-sm-center py-2 border-bottom border-light text-break">
-          <span class="fw-bold me-3 text-nowrap" style="min-width: 45px;">{{ agendamentos.data|date:"H:i" }}</span>
-          <span class="text-secondary fw-medium small">
-            <strong>Tutor:</strong> {{ agendamentos.usuario.nome }}; 
-            <strong>Pet:</strong> {{ agendamentos.pet.nome }}; 
-            <strong>Serviço:</strong> {{ agendamentos.listaServicos }};
-          </span>
+      {% for agendamento in agendamentos_manha %}
+        <div class="d-flex align-items-start justify-content-between py-3 border-bottom border-light flex-wrap gap-2">
+          <div class="d-flex align-items-start gap-3">
+            <span class="fw-bold text-nowrap badge bg-light text-dark border p-2">{{ agendamento.data|date:"H:i" }}</span>
+            <div class="small">
+              <div><strong>Tutor:</strong> {{ agendamento.usuario.get_full_name|default:agendamento.usuario.username }}</div>
+              <div><strong>Pet:</strong> <span class="badge bg-warning text-dark">{{ agendamento.pet.nome }}</span></div>
+              <div><strong>Serviços:</strong> {{ agendamento.lista_servicos|default:"Nenhum serviço" }}</div>
+              <div class="text-muted mt-1" style="font-size: 0.8rem;">
+                <i class="bi bi-clock me-1"></i> {{ agendamento.duracao_total_minutos }} min (Até às {{ agendamento.data_fim_estimada|date:"H:i" }}) | 
+                <strong class="text-success">R$ {{ agendamento.valor_total }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex gap-1 ms-auto">
+            <a href="{% url 'editar_agendamento' agendamento.id %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+              <i class="bi bi-pencil-square"></i>
+            </a>
+            <a href="{% url 'deletar_agendamento' agendamento.id %}" class="btn btn-sm btn-outline-danger" title="Excluir">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
         </div>
       {% empty %}
-        <p class="text-muted small mb-0">Nenhum agendamento para este período.</p>
+        <p class="text-muted small mb-0 py-2 text-center">Nenhum agendamento para este período.</p>
       {% endfor %}
     </div>
   </div>
 
-  <div class="custom-card mb-4">
-    <div class="card-header-custom p-3 d-flex justify-content-between align-items-center">
+  <!-- TURNO: TARDE -->
+  <div class="card shadow-sm border-0 mb-4 rounded-3 overflow-hidden">
+    <div class="bg-light p-3 d-flex justify-content-between align-items-center border-bottom">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-sunset text-warning fs-5"></i>
-        <span class="text-period fw-bold">Tarde</span>
+        <span class="fw-bold">Tarde</span>
       </div>
-      <small class="text-muted fw-bold">13h-18h</small>
+      <small class="text-muted fw-bold">13h - 18h</small>
     </div>
     <div class="p-3">
-      {% for agendamentos in agendamentos_tarde %}
-        <div class="d-flex align-items-start align-items-sm-center py-2 border-bottom border-light text-break">
-          <span class="fw-bold me-3 text-nowrap" style="min-width: 45px;">{{ agendamentos.data|date:"H:i" }}</span>
-          <span class="text-secondary fw-medium small">
-            <strong>Tutor:</strong> {{ agendamentos.usuario.nome }}; 
-            <strong>Pet:</strong> {{ agendamentos.pet.nome }}; 
-            <strong>Serviço:</strong> {{ agendamentos.listaServicos }};
-          </span>
+      {% for agendamento in agendamentos_tarde %}
+        <div class="d-flex align-items-start justify-content-between py-3 border-bottom border-light flex-wrap gap-2">
+          <div class="d-flex align-items-start gap-3">
+            <span class="fw-bold text-nowrap badge bg-light text-dark border p-2">{{ agendamento.data|date:"H:i" }}</span>
+            <div class="small">
+              <div><strong>Tutor:</strong> {{ agendamento.usuario.get_full_name|default:agendamento.usuario.username }}</div>
+              <div><strong>Pet:</strong> <span class="badge bg-warning text-dark">{{ agendamento.pet.nome }}</span></div>
+              <div><strong>Serviços:</strong> {{ agendamento.lista_servicos|default:"Nenhum serviço" }}</div>
+              <div class="text-muted mt-1" style="font-size: 0.8rem;">
+                <i class="bi bi-clock me-1"></i> {{ agendamento.duracao_total_minutos }} min (Até às {{ agendamento.data_fim_estimada|date:"H:i" }}) | 
+                <strong class="text-success">R$ {{ agendamento.valor_total }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex gap-1 ms-auto">
+            <a href="{% url 'editar_agendamento' agendamento.id %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+              <i class="bi bi-pencil-square"></i>
+            </a>
+            <a href="{% url 'deletar_agendamento' agendamento.id %}" class="btn btn-sm btn-outline-danger" title="Excluir">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
         </div>
       {% empty %}
-        <p class="text-muted small mb-0">Nenhum agendamento para este período.</p>
+        <p class="text-muted small mb-0 py-2 text-center">Nenhum agendamento para este período.</p>
       {% endfor %}
     </div>
   </div>
 
-  <div class="custom-card mb-4">
-    <div class="card-header-custom p-3 d-flex justify-content-between align-items-center">
+  <!-- TURNO: NOITE -->
+  <div class="card shadow-sm border-0 mb-4 rounded-3 overflow-hidden">
+    <div class="bg-light p-3 d-flex justify-content-between align-items-center border-bottom">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-moon-stars text-warning fs-5"></i>
-        <span class="text-period fw-bold">Noite</span>
+        <span class="fw-bold">Noite</span>
       </div>
-      <small class="text-muted fw-bold">19h-21h</small>
+      <small class="text-muted fw-bold">19h - 21h</small>
     </div>
     <div class="p-3">
-      {% for agendamentos in agendamentos_noite %}
-        <div class="d-flex align-items-start align-items-sm-center py-2 border-bottom border-light text-break">
-          <span class="fw-bold me-3 text-nowrap" style="min-width: 45px;">{{ agendamentos.data|date:"H:i" }}</span>
-          <span class="text-secondary fw-medium small">
-            <strong>Tutor:</strong> {{ agendamentos.usuario.nome }}; 
-            <strong>Pet:</strong> {{ agendamentos.pet.nome }}; 
-            <strong>Serviço:</strong> {{ agendamentos.listaServicos }};
-          </span>
+      {% for agendamento in agendamentos_noite %}
+        <div class="d-flex align-items-start justify-content-between py-3 border-bottom border-light flex-wrap gap-2">
+          <div class="d-flex align-items-start gap-3">
+            <span class="fw-bold text-nowrap badge bg-light text-dark border p-2">{{ agendamento.data|date:"H:i" }}</span>
+            <div class="small">
+            <div><strong>Tutor:</strong> {{ agendamento.usuario.nome|default:agendamento.usuario.email }}</div>
+              <div><strong>Pet:</strong> <span class="badge bg-warning text-dark">{{ agendamento.pet.nome }}</span></div>
+              <div><strong>Serviços:</strong> {{ agendamento.lista_servicos|default:"Nenhum serviço" }}</div>
+              <div class="text-muted mt-1" style="font-size: 0.8rem;">
+                <i class="bi bi-clock me-1"></i> {{ agendamento.duracao_total_minutos }} min (Até às {{ agendamento.data_fim_estimada|date:"H:i" }}) | 
+                <strong class="text-success">R$ {{ agendamento.valor_total }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex gap-1 ms-auto">
+            <a href="{% url 'editar_agendamento' agendamento.id %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+              <i class="bi bi-pencil-square"></i>
+            </a>
+            <a href="{% url 'deletar_agendamento' agendamento.id %}" class="btn btn-sm btn-outline-danger" title="Excluir">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
         </div>
       {% empty %}
-        <p class="text-muted small mb-0">Nenhum agendamento para este período.</p>
+        <p class="text-muted small mb-0 py-2 text-center">Nenhum agendamento para este período.</p>
       {% endfor %}
     </div>
   </div>

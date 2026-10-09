@@ -6,10 +6,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Fama Pet{% endblock %}</title>
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css'%}" rel="stylesheet">
-    <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css'%}" rel="stylesheet">
-    <link href="{% static 'css/fontes.css'%}" rel="stylesheet">
-    <link href="{% static 'css/style_base.css'%}" rel="stylesheet">
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/fontes.css' %}" rel="stylesheet">
+    <link href="{% static 'css/style_base.css' %}" rel="stylesheet">
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -36,7 +36,7 @@
             </div>
             <h4 class="fw-bold mb-0 text-white">
                 {% if user.is_authenticated %}
-                {{ user.first_name|default:user.username }}
+                {{ user.nome|default:user.first_name|default:user.username }}
                 {% endif %}
             </h4>
         </div>
@@ -47,7 +47,10 @@
             <a href="{% url 'listar_pets' %}" class="nav-btn {% block nav_pets %}{% endblock %}">
                 {% if user.is_staff or user.is_superuser %}Lista de Pets{% else %}Meus Pets{% endif %}
             </a>
+
+            <!-- Opções exclusivas do Administrador / Staff -->
             {% if user.is_staff or user.is_superuser %}
+                <a href="{% url 'listar_servicos' %}" class="nav-btn {% block nav_servicos %}{% endblock %}">Serviços</a>
                 <a href="{% url 'listar_clientes' %}" class="nav-btn {% block nav_clientes %}{% endblock %}">Clientes</a>
                 <a href="{% url 'relatorio' %}" class="nav-btn {% block nav_relatorio %}{% endblock %}">Relatório</a>
             {% endif %}

@@ -1,40 +1,41 @@
-from datetime import date
 from django import forms
-from . import models
+from kerberos.models.servico import Servico
 
-class NomeValidationMixin:
-    def clean_nome(self):
-        nome = self.cleaned_data.get("nome", "").strip()
-        if len(nome) < 3:
-            raise forms.ValidationError(
-                "O nome deve ter pelo menos 3 caracteres."
-            )
-        return nome
 
-class ServicoForm(NomeValidationMixin, forms.ModelForm):
+class ServicoForm(forms.ModelForm):
     class Meta:
-        model = models.Servico
-        fields = ['nome', 'descricao', 'valor']
+        model = Servico
+        fields = ["nome", "descricao", "valor", "duracao_minutos", "ativo"]
         widgets = {
-            'nome': forms.TextInput(attrs={
-                'placeholder': 'Nome do Serviço',
+            "nome": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: Banho e Tosa Completa"
             }),
-            'descricao': forms.Textarea(attrs={
-                'placeholder': 'Descrição do Produto',
-                'rows': 3,
+            "descricao": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Descreva o que está incluso neste serviço..."
             }),
-            'valor': forms.NumberInput(attrs={
-                'placeholder': 'Valor do Serviço',
-                'step': '0.01',
-                'min': '0',
+            "valor": forms.NumberInput(attrs={
+                "class": "form-control",
+                "step": "0.01",
+                "min": "0.01",
+                "placeholder": "0.00"
+            }),
+            "duracao_minutos": forms.NumberInput(attrs={
+                "class": "form-control",
+                "step": "5",
+                "min": "5",
+                "placeholder": "30"
+            }),
+            "ativo": forms.CheckboxInput(attrs={
+                "class": "form-check-input"
             }),
         }
-    
-    def clean_valor(self):
-        valor = self.cleaned_data.get("valor")
-
-        if valor is None or valor <= 0:
-            raise forms.ValidationError(
-                "O valor deve ser maior que zero."
-            )
-        return valor
+        labels = {
+            "nome": "Nome do Serviço",
+            "descricao": "Descrição",
+            "valor": "Preço (R$)",
+            "duracao_minutos": "Duração estimada (minutos)",
+            "ativo": "Disponível para agendamento (Ativo)"
+        }

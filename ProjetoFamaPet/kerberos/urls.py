@@ -5,6 +5,7 @@ from .views.ViewUsuario import (listar_clientes, criar_cliente, editar_cliente, 
 from .views.ViewPoliticas import (politica_privacidade, politica_regulamento, politica_transporte)
 from .views.ViewRelatorio import (relatorio)
 from .views.ViewAgendamento import (agendamentos, criar_agendamento, editar_agendamento, deletar_agendamento)
+from .views.ViewServico import (listar_servicos, salvar_servico, deletar_servico)
 from .views.ViewPerfil import (perfil)
 from .views.ViewLogin import (login)
 from .views.ViewCadastrar import (cadastrar_usuario)
@@ -29,6 +30,11 @@ urlpatterns = [
     path('agendamentos/novo/', criar_agendamento, name='criar_agendamento'),
     path('agendamentos/<int:pk>/editar/', editar_agendamento, name='editar_agendamento'),
     path('agendamentos/<int:pk>/deletar/', deletar_agendamento, name='deletar_agendamento'),
+
+    path('servicos/', listar_servicos, name='listar_servicos'),
+    path('servicos/novo/', salvar_servico, name='criar_servico'),
+    path('servicos/<int:pk>/editar/', salvar_servico, name='editar_servico'),
+    path('servicos/<int:pk>/deletar/', deletar_servico, name='deletar_servico'),
 
     path('politica-privacidade/', politica_privacidade , name='politica-privacidade'),
     path('politica-transporte/', politica_transporte , name='politica-transporte'),
