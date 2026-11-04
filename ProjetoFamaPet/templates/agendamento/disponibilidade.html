@@ -1,0 +1,129 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Disponibilidade — FamaPet{% endblock %}
+{% block nav_disponibilidade %}active{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold mb-1 brand-font text-dark">Disponibilidade</h2>
+    <p class="text-muted small mb-0">Defina o expediente semanal e exceções para datas específicas.</p>
+</div>
+
+<section class="mb-5">
+    <h3 class="h5 fw-bold mb-3">Horário semanal</h3>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="acao" value="salvar_semana">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Dia</th>
+                        <th>Fechado</th>
+                        <th>Abertura</th>
+                        <th>Fechamento</th>
+                        <th>Início da pausa</th>
+                        <th>Fim da pausa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for linha in linhas_horarios %}
+                    <tr>
+                        <th scope="row" class="text-nowrap">{{ linha.nome }}</th>
+                        <td><div class="form-check">{{ linha.form.fechado }}</div></td>
+                        <td>{{ linha.form.hora_abertura }}</td>
+                        <td>{{ linha.form.hora_fechamento }}</td>
+                        <td>{{ linha.form.pausa_inicio }}</td>
+                        <td>{{ linha.form.pausa_fim }}</td>
+                    </tr>
+                    {% for field in linha.form %}
+                        {% for error in field.errors %}
+                        <tr><td colspan="6" class="text-danger small">{{ linha.nome }}: {{ error }}</td></tr>
+                        {% endfor %}
+                    {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <button type="submit" class="btn btn-warning fw-bold">Salvar horário semanal</button>
+    </form>
+</section>
+
+<section class="mb-5">
+    <h3 class="h5 fw-bold mb-3">Exceção de data</h3>
+    <p class="text-muted small">Uma exceção substitui o horário semanal daquela data. Marque “Fechado” para bloquear o dia inteiro.</p>
+    <form method="post" class="card border-0 shadow-sm">
+        {% csrf_token %}
+        <input type="hidden" name="acao" value="criar_excecao">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="{{ excecao_form.data.id_for_label }}" class="form-label">Data</label>
+                    {{ excecao_form.data }}
+                </div>
+                <div class="col-md-2 d-flex align-items-end pb-2">
+                    <div class="form-check form-switch">
+                        {{ excecao_form.fechado }}
+                        <label for="{{ excecao_form.fechado.id_for_label }}" class="form-check-label">Fechado</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label for="{{ excecao_form.hora_abertura.id_for_label }}" class="form-label">Abertura</label>
+                    {{ excecao_form.hora_abertura }}
+                </div>
+                <div class="col-md-2">
+                    <label for="{{ excecao_form.hora_fechamento.id_for_label }}" class="form-label">Fechamento</label>
+                    {{ excecao_form.hora_fechamento }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ excecao_form.motivo.id_for_label }}" class="form-label">Motivo</label>
+                    {{ excecao_form.motivo }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ excecao_form.pausa_inicio.id_for_label }}" class="form-label">Início da pausa</label>
+                    {{ excecao_form.pausa_inicio }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ excecao_form.pausa_fim.id_for_label }}" class="form-label">Fim da pausa</label>
+                    {{ excecao_form.pausa_fim }}
+                </div>
+            </div>
+            {% if excecao_form.errors %}<div class="text-danger small mt-3">{{ excecao_form.errors }}</div>{% endif %}
+        </div>
+        <div class="card-footer bg-white text-end">
+            <button type="submit" class="btn btn-warning fw-bold">Cadastrar exceção</button>
+        </div>
+    </form>
+</section>
+
+<section>
+    <h3 class="h5 fw-bold mb-3">Datas especiais cadastradas</h3>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead><tr><th>Data</th><th>Expediente</th><th>Motivo</th><th class="text-end">Ações</th></tr></thead>
+            <tbody>
+                {% for excecao in excecoes %}
+                <tr>
+                    <td>{{ excecao.data|date:"d/m/Y" }}</td>
+                    <td>{% if excecao.fechado %}Fechado{% else %}{{ excecao.hora_abertura|time:"H:i" }}–{{ excecao.hora_fechamento|time:"H:i" }}{% endif %}</td>
+                    <td>{{ excecao.motivo|default:"-" }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'editar_excecao_horario' excecao.pk %}" class="btn btn-sm btn-light border" aria-label="Editar exceção de {{ excecao.data|date:'d/m/Y' }}" title="Editar">
+                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                        </a>
+                        <form method="post" action="{% url 'deletar_excecao_horario' excecao.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-light border text-danger" aria-label="Remover exceção de {{ excecao.data|date:'d/m/Y' }}" title="Remover">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Nenhuma exceção cadastrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Colaboradores — FamaPet{% endblock %}
+{% block nav_colaboradores %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1 brand-font text-dark">Colaboradores</h2>
+        <p class="text-muted small mb-0">Gerencie quem pode acessar a agenda da equipe.</p>
+    </div>
+    <a href="{% url 'criar_colaborador' %}" class="btn btn-warning text-dark fw-bold d-inline-flex align-items-center gap-2">
+        <i class="bi bi-person-plus" aria-hidden="true"></i>
+        Novo colaborador
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-borderless align-middle">
+        <thead>
+            <tr class="text-muted border-bottom small text-uppercase">
+                <th scope="col">Nome</th>
+                <th scope="col">E-mail</th>
+                <th scope="col">Telefone</th>
+                <th scope="col">Acesso</th>
+                <th scope="col" class="text-end">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for colaborador in colaboradores %}
+            <tr class="border-bottom">
+                <td class="fw-semibold">{{ colaborador.nome }}</td>
+                <td>{{ colaborador.email }}</td>
+                <td>{{ colaborador.telefone|default:"-" }}</td>
+                <td>
+                    {% if colaborador.is_active %}
+                    <span class="badge text-bg-success">Ativo</span>
+                    {% else %}
+                    <span class="badge text-bg-secondary">Inativo</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <div class="d-inline-flex align-items-center gap-1">
+                        <a href="{% url 'editar_colaborador' colaborador.pk %}" class="btn btn-sm btn-light border" title="Editar {{ colaborador.nome }}" aria-label="Editar {{ colaborador.nome }}">
+                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                        </a>
+                        {% if colaborador != user %}
+                        <form method="post" action="{% url 'alternar_status_colaborador' colaborador.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-light border {% if colaborador.is_active %}text-danger{% else %}text-success{% endif %}" title="{% if colaborador.is_active %}Desativar{% else %}Ativar{% endif %} {{ colaborador.nome }}">
+                                <i class="bi {% if colaborador.is_active %}bi-person-x{% else %}bi-person-check{% endif %}" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted py-5">Nenhum colaborador cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

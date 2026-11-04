@@ -14,11 +14,13 @@
                 <p class="text-muted small mb-0">Gerencie os pets cadastrados no sistema</p>
             </div>
 
+            {% if not request.user.is_colaborador %}
             <div>
                 <a href="{% url 'criar_pet' %}" class="btn btn-warning text-dark fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3.5 py-2 rounded-3 text-nowrap" style="background-color: var(--amarelo-cta); font-size: 0.85rem; transition: all var(--transicao);">
                     <i class="bi bi-plus-lg"></i> Novo Pet
                 </a>
             </div>
+            {% endif %}
         </div>
 
         <div class="card border-0 shadow-sm rounded-3 mb-4 p-3 bg-white" style="border-radius: var(--raio) !important;">
@@ -53,7 +55,7 @@
                         <th class="fw-bold pb-3 text-secondary">Raça</th>
                         <th class="fw-bold pb-3 text-secondary">Porte</th>
                         <th class="fw-bold pb-3 text-secondary">Nascimento</th>
-                        <th class="fw-bold text-center pb-3 text-secondary">Ações</th>
+                        {% if not request.user.is_colaborador %}<th class="fw-bold text-center pb-3 text-secondary">Ações</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -80,6 +82,7 @@
                         </td>
                         <td class="py-3.5 text-secondary">{{ pet.data_de_nascimento|date:"d/m/Y"|default:"-" }}</td>
                         
+                        {% if not request.user.is_colaborador %}
                         <td class="text-center py-3.5" style="border-radius: 0 var(--raio) var(--raio) 0;">
                             <div class="d-flex justify-content-center align-items-center gap-1">
                                 <a href="{% url 'editar_pet' pet.pk %}" class="btn btn-sm btn-light border text-secondary rounded-2" title="Editar">
@@ -94,10 +97,11 @@
                                 </form>
                             </div>
                         </td>
+                        {% endif %}
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="{% if request.user.is_staff %}6{% else %}5{% endif %}" class="text-center py-5">
+                        <td colspan="{% if request.user.is_staff and not request.user.is_colaborador %}6{% else %}5{% endif %}" class="text-center py-5">
                             <div class="text-muted mb-2">
                                 <i class="bi bi-search fs-1 opacity-50"></i>
                             </div>

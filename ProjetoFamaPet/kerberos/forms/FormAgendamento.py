@@ -4,14 +4,19 @@ from django.utils import timezone
 from kerberos.models.agendamento import Agendamento
 from kerberos.models.pet import Pet
 from kerberos.models.servico import Servico
+from kerberos.services.disponibilidade import horarios_disponiveis
 
 
 class AgendamentoForm(forms.ModelForm):
-    data = forms.DateTimeField(
-        widget=forms.DateTimeInput(
-            attrs={"type": "datetime-local", "class": "form-control"},
-            format="%Y-%m-%dT%H:%M"
+    data_dia = forms.DateField(
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "form-control"},
+            format="%Y-%m-%d",
         ),
+        label="Dia",
+    )
+    data = forms.DateTimeField(
+        widget=forms.HiddenInput(),
         input_formats=["%Y-%m-%dT%H:%M"],
         label="Data e Horário"
     )
@@ -31,9 +36,14 @@ class AgendamentoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.usuario = usuario
 
+        if self.instance.pk and self.instance.data:
+            data_local = timezone.localtime(self.instance.data)
+            self.fields["data_dia"].initial = data_local.date()
+            self.initial["data"] = data_local.strftime("%Y-%m-%dT%H:%M")
+
         agora = timezone.localtime()
         if not self.instance.pk or not self.instance.data or self.instance.data >= agora:
-            self.fields['data'].widget.attrs['min'] = agora.strftime('%Y-%m-%dT%H:%M')
+            self.fields['data_dia'].widget.attrs['min'] = agora.date().isoformat()
 
         if usuario and getattr(usuario, "is_authenticated", False):
             if usuario.is_staff:
@@ -74,3 +84,40 @@ class AgendamentoForm(forms.ModelForm):
                 return data
 
         raise forms.ValidationError('Escolha uma data e horário futuros.')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        data = cleaned_data.get("data")
+        data_dia = cleaned_data.get("data_dia")
+        servicos = cleaned_data.get("servicos")
+
+        if not data or not data_dia or not servicos:
+            return cleaned_data
+
+        if timezone.localtime(data).date() != data_dia:
+            self.add_error("data", "O horário selecionado não corresponde ao dia informado.")
+            return cleaned_data
+
+        if self.instance.pk and self.instance.data:
+            original = self.instance.data.replace(second=0, microsecond=0)
+            enviado = data.replace(second=0, microsecond=0)
+            if enviado == original:
+                return cleaned_data
+
+        duracao = sum(servico.duracao_minutos for servico in servicos)
+        disponiveis = horarios_disponiveis(
+            data_dia,
+            duracao,
+            agendamento_id=self.instance.pk,
+        )
+        if not any(
+            horario.replace(second=0, microsecond=0)
+            == data.replace(second=0, microsecond=0)
+            for horario in disponiveis
+        ):
+            self.add_error(
+                "data",
+                "Este horário não está mais disponível. Selecione outro horário livre.",
+            )
+
+        return cleaned_data

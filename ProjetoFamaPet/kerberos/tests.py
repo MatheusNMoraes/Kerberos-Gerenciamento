@@ -1,19 +1,24 @@
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 import re
 
 from django.test import Client, TestCase
+from django.core import mail
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from kerberos.forms.FormAgendamento import AgendamentoForm
 from kerberos.forms.FormAdminUsuario import AdminUsuarioCreationForm
+from kerberos.forms.FormColaborador import ColaboradorForm
 from kerberos.forms.FormPet import PetForm
 from kerberos.forms.FormUsuario import UsuarioForm
 from kerberos.models.agendamento import Agendamento, ItemAgendamento
 from kerberos.models.pet import Pet
 from kerberos.models.servico import Servico
 from kerberos.models.usuario import Usuario
+from kerberos.models.horario import ExcecaoHorario, HorarioFuncionamento
+from kerberos.services.disponibilidade import horarios_disponiveis
 
 
 class PetAuthorizationTests(TestCase):
@@ -189,6 +194,7 @@ class CadastroUsuarioPetTests(TestCase):
                 'usuario-telefone': '(11) 91234-5678',
                 'usuario-senha': 'Strong-Password!2026',
                 'usuario-confirmar_senha': 'Strong-Password!2026',
+                'usuario-aceita_regulamento': 'on',
                 'endereco-cep': '01001-000',
                 'endereco-logradouro': 'Praça da Sé',
                 'endereco-numero': '1',
@@ -217,6 +223,38 @@ class UsuarioLoginTests(TestCase):
 
         self.assertContains(response, 'type="email"')
         self.assertContains(response, 'E-mail')
+
+    @override_settings(CSRF_TRUSTED_ORIGINS=['https://localhost:8001'])
+    def test_login_aceita_post_com_origem_https_confiavel(self):
+        usuario = Usuario.objects.create_user(
+            username='csrf-login',
+            email='csrf-login@example.com',
+            nome='Login CSRF',
+            password='Strong-CSRF-Password!2026',
+        )
+        cliente_csrf = Client(enforce_csrf_checks=True)
+        pagina_login = cliente_csrf.get(
+            reverse('login'),
+            HTTP_HOST='localhost:8001',
+        )
+        token = re.search(
+            rb'name="csrfmiddlewaretoken" value="([^\"]+)"',
+            pagina_login.content,
+        ).group(1).decode()
+
+        resposta = cliente_csrf.post(
+            reverse('login'),
+            {
+                'username': usuario.email,
+                'password': 'Strong-CSRF-Password!2026',
+                'csrfmiddlewaretoken': token,
+            },
+            HTTP_HOST='localhost:8001',
+            HTTP_ORIGIN='https://localhost:8001',
+        )
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(int(cliente_csrf.session['_auth_user_id']), usuario.pk)
 
     def test_usuario_pode_entrar_com_email_quando_username_e_diferente(self):
         usuario = Usuario.objects.create_user(
@@ -259,7 +297,7 @@ class UsuarioLoginTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertNotIn('_auth_user_id', self.client.session)
 
-    def test_admin_pode_entrar_com_username(self):
+    def test_administrador_pode_entrar_pelo_login_do_site(self):
         usuario = Usuario.objects.create_user(
             username='admin-login',
             email='admin-login@example.com',
@@ -269,27 +307,7 @@ class UsuarioLoginTests(TestCase):
         )
 
         response = self.client.post(
-            reverse('admin:login'),
-            {
-                'username': usuario.username,
-                'password': 'Strong-Login-Password!2026',
-            },
-        )
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(int(self.client.session['_auth_user_id']), usuario.pk)
-
-    def test_admin_pode_entrar_com_email(self):
-        usuario = Usuario.objects.create_user(
-            username='admin-login',
-            email='admin-login@example.com',
-            nome='Administrador',
-            password='Strong-Login-Password!2026',
-            is_staff=True,
-        )
-
-        response = self.client.post(
-            reverse('admin:login'),
+            reverse('login'),
             {
                 'username': usuario.email,
                 'password': 'Strong-Login-Password!2026',
@@ -297,7 +315,28 @@ class UsuarioLoginTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('listar_clientes'))
         self.assertEqual(int(self.client.session['_auth_user_id']), usuario.pk)
+
+    def test_login_do_site_nao_aceita_username_no_lugar_de_email(self):
+        usuario = Usuario.objects.create_user(
+            username='admin-login',
+            email='admin-login@example.com',
+            nome='Administrador',
+            password='Strong-Login-Password!2026',
+            is_staff=True,
+        )
+
+        response = self.client.post(
+            reverse('login'),
+            {
+                'username': usuario.username,
+                'password': 'Strong-Login-Password!2026',
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_admin_cria_usuario_com_senha_hasheada(self):
         senha = 'Strong-Admin-Password!2026'
@@ -317,6 +356,324 @@ class UsuarioLoginTests(TestCase):
 
         self.assertTrue(usuario.check_password(senha))
         self.assertNotEqual(usuario.password, senha)
+
+
+class AdminClienteSenhaTests(TestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='admin-senha',
+            email='admin-senha@example.com',
+            nome='Admin Senha',
+            password='Original-Admin-Password!2026',
+            is_staff=True,
+        )
+        self.cliente = Usuario.objects.create_user(
+            username='cliente-senha',
+            email='cliente-senha@example.com',
+            nome='Cliente Senha',
+            password='Original-Client-Password!2026',
+        )
+
+    def test_staff_pode_definir_nova_senha_com_hash(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('listar_clientes'))
+        self.assertContains(
+            response,
+            reverse('alterar_senha_cliente', args=[self.cliente.pk]),
+        )
+
+        response = self.client.get(
+            reverse('alterar_senha_cliente', args=[self.cliente.pk]),
+        )
+        self.assertContains(response, 'name="password1"')
+        self.assertContains(response, 'name="password2"')
+
+        response = self.client.post(
+            reverse('alterar_senha_cliente', args=[self.cliente.pk]),
+            {
+                'password1': 'New-Client-Password!2026',
+                'password2': 'New-Client-Password!2026',
+            },
+        )
+
+        self.assertRedirects(response, reverse('listar_clientes'))
+        self.cliente.refresh_from_db()
+        self.assertTrue(self.cliente.check_password('New-Client-Password!2026'))
+        self.assertFalse(self.cliente.check_password('Original-Client-Password!2026'))
+        self.assertNotEqual(self.cliente.password, 'New-Client-Password!2026')
+
+    def test_cliente_nao_pode_redefinir_senha_de_outro_usuario(self):
+        self.client.force_login(self.cliente)
+
+        response = self.client.get(
+            reverse('alterar_senha_cliente', args=[self.admin.pk]),
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_staff_nao_define_senha_fraca(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse('alterar_senha_cliente', args=[self.cliente.pk]),
+            {'password1': '12345678', 'password2': '12345678'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['form'].errors)
+        self.cliente.refresh_from_db()
+        self.assertTrue(self.cliente.check_password('Original-Client-Password!2026'))
+
+
+class ColaboradorTests(TestCase):
+    def setUp(self):
+        self.admin = Usuario.objects.create_user(
+            username='admin-colaboradores',
+            email='admin-colaboradores@example.com',
+            nome='Admin Colaboradores',
+            password='Strong-Admin-Password!2026',
+            is_staff=True,
+        )
+        self.cliente = Usuario.objects.create_user(
+            username='cliente-colaboradores@example.com',
+            email='cliente-colaboradores@example.com',
+            nome='Cliente Colaboradores',
+            password='Strong-Client-Password!2026',
+        )
+        self.pet = Pet.objects.create(
+            nome='Toby',
+            data_de_nascimento=date(2021, 4, 10),
+            raca='SRD',
+            porte='Pequeno',
+            usuario=self.cliente,
+        )
+
+    def criar_colaborador(self, email='colaborador@example.com'):
+        form = ColaboradorForm(data={
+            'nome': 'Colaborador Teste',
+            'email': email,
+            'telefone': '',
+            'is_active': True,
+            'senha': 'Strong-Collaborator-Password!2026',
+            'confirmar_senha': 'Strong-Collaborator-Password!2026',
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        return form.save()
+
+    def test_form_cria_colaborador_sem_permissao_de_administrador(self):
+        colaborador = self.criar_colaborador()
+
+        self.assertTrue(colaborador.is_staff)
+        self.assertTrue(colaborador.is_colaborador)
+        self.assertFalse(colaborador.is_superuser)
+        self.assertTrue(
+            colaborador.check_password('Strong-Collaborator-Password!2026')
+        )
+
+    def test_admin_pode_cadastrar_editar_e_desativar_colaborador(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse('criar_colaborador'),
+            {
+                'nome': 'Novo Colaborador',
+                'email': 'novo-colaborador@example.com',
+                'telefone': '',
+                'is_active': 'on',
+                'senha': 'Strong-New-Collaborator-Password!2026',
+                'confirmar_senha': 'Strong-New-Collaborator-Password!2026',
+            },
+        )
+        self.assertRedirects(response, reverse('listar_colaboradores'))
+        colaborador = Usuario.objects.get(email='novo-colaborador@example.com')
+        self.assertTrue(colaborador.is_colaborador)
+
+        response = self.client.post(
+            reverse('editar_colaborador', args=[colaborador.pk]),
+            {
+                'nome': 'Colaborador Atualizado',
+                'email': 'novo-colaborador@example.com',
+                'telefone': '',
+                'is_active': 'on',
+                'senha': '',
+                'confirmar_senha': '',
+            },
+        )
+        self.assertRedirects(response, reverse('listar_colaboradores'))
+        colaborador.refresh_from_db()
+        self.assertEqual(colaborador.nome, 'Colaborador Atualizado')
+        self.assertTrue(
+            colaborador.check_password('Strong-New-Collaborator-Password!2026')
+        )
+
+        response = self.client.post(
+            reverse('alternar_status_colaborador', args=[colaborador.pk]),
+        )
+        self.assertRedirects(response, reverse('listar_colaboradores'))
+        colaborador.refresh_from_db()
+        self.assertFalse(colaborador.is_active)
+
+    def test_colaborador_acessa_agenda_e_consulta_pets_sem_acesso_administrativo(self):
+        colaborador = self.criar_colaborador()
+        self.client.force_login(colaborador)
+
+        agenda_response = self.client.get(reverse('agendamentos'))
+        pets_response = self.client.get(reverse('listar_pets'))
+        self.assertEqual(agenda_response.status_code, 200)
+        self.assertEqual(pets_response.status_code, 200)
+        self.assertContains(pets_response, self.pet.nome)
+        self.assertNotContains(pets_response, reverse('editar_pet', args=[self.pet.pk]))
+        self.assertNotContains(agenda_response, reverse('listar_colaboradores'))
+
+        for url_name in ('listar_clientes', 'listar_colaboradores', 'listar_servicos'):
+            response = self.client.get(reverse(url_name))
+            self.assertEqual(response.status_code, 302)
+
+        self.client.raise_request_exception = False
+        self.assertEqual(
+            self.client.get(reverse('relatorio')).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.post(reverse('deletar_pet', args=[self.pet.pk])).status_code,
+            403,
+        )
+
+    def test_cliente_nao_acessa_a_gestao_de_colaboradores(self):
+        self.client.force_login(self.cliente)
+
+        response = self.client.get(reverse('listar_colaboradores'))
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_admin_configura_expediente_semanal_e_dia_fechado(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('gerenciar_disponibilidade'))
+        self.assertContains(response, 'Horário semanal')
+
+        dados_semanais = {'acao': 'salvar_semana'}
+        dados_semanais.update({
+            'dia-0-hora_abertura': '09:00',
+            'dia-0-hora_fechamento': '18:00',
+        })
+        for dia in range(1, 7):
+            dados_semanais[f'dia-{dia}-fechado'] = 'on'
+
+        response = self.client.post(reverse('gerenciar_disponibilidade'), dados_semanais)
+
+        self.assertRedirects(response, reverse('gerenciar_disponibilidade'))
+        horario = HorarioFuncionamento.objects.get(dia_semana=0)
+        self.assertFalse(horario.fechado)
+        self.assertEqual(horario.hora_abertura, time(9))
+        self.assertEqual(horario.hora_fechamento, time(18))
+
+        data_fechada = (timezone.localdate() + timedelta(days=10)).isoformat()
+        response = self.client.post(
+            reverse('gerenciar_disponibilidade'),
+            {
+                'acao': 'criar_excecao',
+                'data': data_fechada,
+                'fechado': 'on',
+                'motivo': 'Feriado',
+            },
+        )
+
+        self.assertRedirects(response, reverse('gerenciar_disponibilidade'))
+        excecao = ExcecaoHorario.objects.get(data=data_fechada)
+        self.assertTrue(excecao.fechado)
+        self.assertEqual(excecao.motivo, 'Feriado')
+
+    def test_colaborador_nao_pode_alterar_disponibilidade(self):
+        colaborador = self.criar_colaborador()
+        self.client.force_login(colaborador)
+
+        response = self.client.get(reverse('gerenciar_disponibilidade'))
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_api_retorna_horarios_conforme_dia_e_servicos(self):
+        data_selecionada = timezone.localdate() + timedelta(days=1)
+        HorarioFuncionamento.objects.create(
+            dia_semana=data_selecionada.weekday(),
+            fechado=False,
+            hora_abertura=time(9),
+            hora_fechamento=time(18),
+            pausa_inicio=time(12),
+            pausa_fim=time(13),
+        )
+        servico = Servico.objects.create(
+            nome='Banho API disponibilidade',
+            valor=Decimal('35.00'),
+            duracao_minutos=60,
+        )
+        self.client.force_login(self.cliente)
+
+        response = self.client.get(
+            reverse('horarios_disponiveis'),
+            {'data': data_selecionada.isoformat(), 'servicos': [servico.pk]},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        rotulos = {horario['rotulo'] for horario in response.json()['horarios']}
+        self.assertIn('09:00', rotulos)
+        self.assertNotIn('12:00', rotulos)
+        self.assertNotIn('17:30', rotulos)
+
+
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+class RecuperacaoSenhaTests(TestCase):
+    def setUp(self):
+        self.usuario = Usuario.objects.create_user(
+            username='cliente-recuperacao',
+            email='cliente-recuperacao@example.com',
+            nome='Cliente Recuperacao',
+            password='Original-Password!2026',
+        )
+
+    def test_login_exibe_link_para_recuperar_senha(self):
+        response = self.client.get(reverse('login'))
+
+        self.assertContains(response, reverse('password_reset'))
+
+    def test_link_enviado_permite_definir_uma_nova_senha(self):
+        response = self.client.post(
+            reverse('password_reset'),
+            {'email': self.usuario.email},
+        )
+
+        self.assertRedirects(response, reverse('password_reset_done'))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(self.usuario.email, mail.outbox[0].to)
+
+        reset_url = re.search(
+            r'http://testserver/accounts/reset/[^\s]+',
+            mail.outbox[0].body,
+        ).group(0)
+        response = self.client.get(reset_url)
+        self.assertEqual(response.status_code, 302)
+        set_password_url = response['Location']
+        response = self.client.get(set_password_url)
+        self.assertContains(response, 'Definir nova senha')
+        response = self.client.post(
+            set_password_url,
+            {
+                'new_password1': 'New-Password!2026-Complete',
+                'new_password2': 'New-Password!2026-Complete',
+            },
+        )
+
+        self.assertRedirects(response, reverse('password_reset_complete'))
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password('New-Password!2026-Complete'))
+
+    def test_email_inexistente_nao_revela_se_conta_existe(self):
+        response = self.client.post(
+            reverse('password_reset'),
+            {'email': 'inexistente@example.com'},
+        )
+
+        self.assertRedirects(response, reverse('password_reset_done'))
+        self.assertEqual(len(mail.outbox), 0)
 
 
 class RelatorioAtendimentosTests(TestCase):
@@ -435,7 +792,6 @@ class RelatorioAtendimentosTests(TestCase):
             [agendamento.pk for agendamento in response.context['agendamentos']],
             [agendamento_cliente.pk],
         )
-        self.assertContains(response, 'Histórico de Atendimentos')
         self.assertContains(response, 'Histórico de Agendamentos')
         self.assertNotContains(response, 'Total Investido')
         self.assertNotContains(response, 'Atendimentos Concluídos')
@@ -463,10 +819,20 @@ class AgendamentoHistoricoTests(TestCase):
             valor=Decimal('30.00'),
             duracao_minutos=30,
         )
+        for dia_semana in range(7):
+            HorarioFuncionamento.objects.create(
+                dia_semana=dia_semana,
+                fechado=False,
+                hora_abertura=time(9),
+                hora_fechamento=time(18),
+                pausa_inicio=time(12),
+                pausa_fim=time(13),
+            )
+        data_base = timezone.localdate() + timedelta(days=2)
         self.agendamento = Agendamento.objects.create(
             usuario=self.cliente,
             pet=self.pet,
-            data=timezone.now() + timedelta(days=2),
+            data=timezone.make_aware(datetime.combine(data_base, time(14))),
         )
         ItemAgendamento.objects.create(
             agendamento=self.agendamento,
@@ -481,6 +847,7 @@ class AgendamentoHistoricoTests(TestCase):
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'data_dia': data_passada.date().isoformat(),
                 'data': data_passada.strftime('%Y-%m-%dT%H:%M'),
                 'servicos': [self.servico.pk],
             },
@@ -494,6 +861,7 @@ class AgendamentoHistoricoTests(TestCase):
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'data_dia': '0001-01-01',
                 'data': '0001-01-01T00:00',
                 'servicos': [self.servico.pk],
             },
@@ -510,6 +878,7 @@ class AgendamentoHistoricoTests(TestCase):
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'data_dia': data_original.date().isoformat(),
                 'data': data_original.strftime('%Y-%m-%dT%H:%M'),
                 'servicos': [self.servico.pk],
             },
@@ -550,6 +919,7 @@ class AgendamentoHistoricoTests(TestCase):
             reverse('editar_agendamento', args=[self.agendamento.pk]),
             {
                 'pet': self.pet.pk,
+                'data_dia': timezone.localtime(self.agendamento.data).date().isoformat(),
                 'data': timezone.localtime(self.agendamento.data).strftime('%Y-%m-%dT%H:%M'),
                 'servicos': [self.servico.pk],
             },
@@ -560,6 +930,93 @@ class AgendamentoHistoricoTests(TestCase):
         item = ItemAgendamento.objects.get(agendamento=self.agendamento)
         self.assertEqual(item.preco_unitario, Decimal('25.00'))
         self.assertEqual(item.duracao_minutos, 25)
+
+    def test_horarios_disponiveis_respeitam_expediente_pausa_e_duracao(self):
+        data_selecionada = timezone.localdate() + timedelta(days=1)
+
+        horarios = horarios_disponiveis(data_selecionada, 60)
+        rotulos = {timezone.localtime(horario).strftime('%H:%M') for horario in horarios}
+
+        self.assertIn('09:00', rotulos)
+        self.assertIn('11:00', rotulos)
+        self.assertNotIn('11:30', rotulos)
+        self.assertNotIn('12:00', rotulos)
+        self.assertIn('13:00', rotulos)
+        self.assertIn('17:00', rotulos)
+        self.assertNotIn('17:30', rotulos)
+
+    def test_horarios_disponiveis_excluem_conflitos_por_duracao(self):
+        data_selecionada = timezone.localdate() + timedelta(days=1)
+        inicio_ocupado = timezone.make_aware(
+            datetime.combine(data_selecionada, time(9)),
+        )
+        agendamento_ocupado = Agendamento.objects.create(
+            usuario=self.cliente,
+            pet=self.pet,
+            data=inicio_ocupado,
+        )
+        ItemAgendamento.objects.create(
+            agendamento=agendamento_ocupado,
+            servico=self.servico,
+            servico_nome=self.servico.nome,
+            preco_unitario=self.servico.valor,
+            duracao_minutos=45,
+        )
+
+        horarios = horarios_disponiveis(data_selecionada, 30)
+        rotulos = {timezone.localtime(horario).strftime('%H:%M') for horario in horarios}
+
+        self.assertNotIn('09:00', rotulos)
+        self.assertNotIn('09:30', rotulos)
+        self.assertIn('10:00', rotulos)
+
+    def test_excecao_de_fechamento_suspende_horarios_semanais(self):
+        data_selecionada = timezone.localdate() + timedelta(days=1)
+        ExcecaoHorario.objects.create(data=data_selecionada, fechado=True)
+
+        self.assertEqual(horarios_disponiveis(data_selecionada, 30), [])
+
+    def test_excecao_de_horario_especial_substitui_expediente_semanal(self):
+        data_selecionada = timezone.localdate() + timedelta(days=1)
+        ExcecaoHorario.objects.create(
+            data=data_selecionada,
+            fechado=False,
+            hora_abertura=time(10),
+            hora_fechamento=time(12),
+        )
+
+        horarios = horarios_disponiveis(data_selecionada, 30)
+        rotulos = {timezone.localtime(horario).strftime('%H:%M') for horario in horarios}
+
+        self.assertIn('10:00', rotulos)
+        self.assertIn('11:30', rotulos)
+        self.assertNotIn('09:00', rotulos)
+        self.assertNotIn('12:00', rotulos)
+
+    def test_form_aceita_slot_disponivel_e_rejeita_horario_fora_do_expediente(self):
+        data_selecionada = timezone.localdate() + timedelta(days=1)
+        form_valido = AgendamentoForm(
+            data={
+                'pet': self.pet.pk,
+                'data_dia': data_selecionada.isoformat(),
+                'data': f'{data_selecionada.isoformat()}T09:00',
+                'servicos': [self.servico.pk],
+            },
+            usuario=self.cliente,
+        )
+        form_fora_expediente = AgendamentoForm(
+            data={
+                'pet': self.pet.pk,
+                'data_dia': data_selecionada.isoformat(),
+                'data': f'{data_selecionada.isoformat()}T08:30',
+                'servicos': [self.servico.pk],
+            },
+            usuario=self.cliente,
+        )
+
+        self.assertTrue(form_valido.is_valid(), form_valido.errors)
+        self.assertFalse(form_fora_expediente.is_valid())
+        self.assertIn('data', form_fora_expediente.errors)
 
     def test_admin_altera_status_e_volta_para_data_selecionada(self):
         admin = Usuario.objects.create_user(
@@ -614,6 +1071,30 @@ class AgendamentoHistoricoTests(TestCase):
         self.agendamento.refresh_from_db()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.agendamento.status, Agendamento.StatusChoices.PENDENTE)
+
+    def test_colaborador_pode_alterar_status(self):
+        colaborador = Usuario.objects.create_user(
+            username='colaborador-status@example.com',
+            email='colaborador-status@example.com',
+            nome='Colaborador Status',
+            password='Strong-Collaborator-Password!2026',
+            is_staff=True,
+            is_colaborador=True,
+        )
+        self.client.force_login(colaborador)
+        data = timezone.localtime(self.agendamento.data).date().isoformat()
+
+        response = self.client.post(
+            reverse('alterar_status_agendamento', args=[self.agendamento.pk]),
+            {'status': Agendamento.StatusChoices.CONFIRMADO, 'data': data},
+        )
+
+        self.agendamento.refresh_from_db()
+        self.assertRedirects(
+            response,
+            f"{reverse('agendamentos')}?data={data}",
+        )
+        self.assertEqual(self.agendamento.status, Agendamento.StatusChoices.CONFIRMADO)
 
 
 class CadastroCompostoTests(TestCase):

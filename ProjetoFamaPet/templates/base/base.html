@@ -50,7 +50,7 @@
 
         <nav class="mt-2 flex-grow-1">
             {% if user.is_authenticated %}
-                {% if user.is_staff %}
+                {% if user.is_administrador %}
                     <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">Atendimentos</span>
                     <a href="{% url 'agendamentos' %}" class="nav-btn {% block nav_admin_agendamentos %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
                         <i class="bi bi-calendar-check me-2 fs-5"></i>Agendamentos
@@ -68,8 +68,23 @@
                     <a href="{% url 'listar_clientes' %}" class="nav-btn {% block nav_clientes %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
                         <i class="bi bi-people me-2 fs-5"></i>Clientes
                     </a>
+                    <a href="{% url 'listar_colaboradores' %}" class="nav-btn {% block nav_colaboradores %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
+                        <i class="bi bi-person-badge me-2 fs-5"></i>Colaboradores
+                    </a>
+                    <a href="{% url 'gerenciar_disponibilidade' %}" class="nav-btn {% block nav_disponibilidade %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
+                        <i class="bi bi-clock-history me-2 fs-5"></i>Disponibilidade
+                    </a>
                     <a href="{% url 'relatorio' %}" class="nav-btn {% block nav_admin_relatorio %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
                         <i class="bi bi-bar-chart me-2 fs-5"></i>Relatórios
+                    </a>
+
+                {% elif user.is_colaborador %}
+                    <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2">Atendimentos</span>
+                    <a href="{% url 'agendamentos' %}" class="nav-btn {% block nav_colaborador_agendamentos %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
+                        <i class="bi bi-calendar-check me-2 fs-5"></i>Agendamentos
+                    </a>
+                    <a href="{% url 'listar_pets' %}" class="nav-btn {% block nav_colaborador_pets %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
+                        <i class="bi bi-card-list me-2 fs-5"></i>Pets
                     </a>
 
                 {% else %}

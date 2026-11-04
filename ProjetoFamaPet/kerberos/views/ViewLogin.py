@@ -69,7 +69,6 @@ class login(LoginView):
 
     def get_success_url(self):
         user = self.request.user
-        if user.is_staff or user.is_superuser:
+        if user.is_administrador:
             return reverse_lazy('listar_clientes')
-        else:
-            return reverse_lazy('agendamentos')
+        return reverse_lazy('agendamentos')

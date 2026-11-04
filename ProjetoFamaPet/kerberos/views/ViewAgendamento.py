@@ -1,17 +1,24 @@
-from datetime import datetime
+from datetime import date, datetime
 from urllib.parse import urlencode
 
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from kerberos.forms.FormAgendamento import AgendamentoForm
+from kerberos.decorators import operador_required
 from kerberos.models.agendamento import Agendamento, ItemAgendamento
+from kerberos.models.servico import Servico
+from kerberos.services.disponibilidade import (
+    bloquear_configuracao_dia,
+    horarios_disponiveis,
+)
 
 
 def _criar_item_agendamento(agendamento, servico):
@@ -22,6 +29,14 @@ def _criar_item_agendamento(agendamento, servico):
         preco_unitario=servico.valor,
         duracao_minutos=servico.duracao_minutos,
     )
+
+
+def _bloquear_data_do_post(request):
+    try:
+        data_selecionada = date.fromisoformat(request.POST.get("data_dia", ""))
+    except ValueError:
+        return
+    bloquear_configuracao_dia(data_selecionada)
 
 
 @login_required
@@ -59,7 +74,53 @@ def agendamentos(request):
     return render(request, 'agendamento/agendamentos.html', contexto)
 
 
-@staff_member_required
+@login_required
+def horarios_disponiveis_json(request):
+    try:
+        data_selecionada = date.fromisoformat(request.GET.get("data", ""))
+    except ValueError:
+        return JsonResponse({"horarios": []})
+
+    ids_servicos = request.GET.getlist("servicos")
+    if not ids_servicos or any(not item.isdigit() for item in ids_servicos):
+        return JsonResponse({"horarios": []})
+
+    agendamento = None
+    agendamento_id = request.GET.get("agendamento_id")
+    if agendamento_id and agendamento_id.isdigit():
+        queryset = Agendamento.objects.all()
+        if not request.user.is_staff:
+            queryset = queryset.filter(usuario=request.user)
+        agendamento = get_object_or_404(queryset, pk=agendamento_id)
+
+    servicos = Servico.objects.filter(pk__in=ids_servicos, ativo=True)
+    if agendamento:
+        servicos = Servico.objects.filter(
+            Q(ativo=True) | Q(itens_agendados__agendamento=agendamento),
+            pk__in=ids_servicos,
+        ).distinct()
+    servicos = list(servicos)
+    if len({servico.pk for servico in servicos}) != len(set(ids_servicos)):
+        return JsonResponse({"horarios": []})
+
+    duracao = sum(servico.duracao_minutos for servico in servicos)
+    horarios = horarios_disponiveis(
+        data_selecionada,
+        duracao,
+        agendamento_id=agendamento.pk if agendamento else None,
+    )
+    return JsonResponse({
+        "horarios": [
+            {
+                "valor": timezone.localtime(horario).strftime("%Y-%m-%dT%H:%M"),
+                "rotulo": timezone.localtime(horario).strftime("%H:%M"),
+            }
+            for horario in horarios
+        ],
+    })
+
+
+@operador_required
 @require_POST
 def alterar_status_agendamento(request, pk):
     agendamento = get_object_or_404(Agendamento, pk=pk)
@@ -88,6 +149,7 @@ def alterar_status_agendamento(request, pk):
 def criar_agendamento(request):
     if request.method == 'POST':
         form = AgendamentoForm(request.POST, usuario=request.user)
+        _bloquear_data_do_post(request)
         if form.is_valid():
             agendamento = form.save(commit=False)
             
@@ -127,6 +189,7 @@ def editar_agendamento(request, pk):
 
     if request.method == 'POST':
         form = AgendamentoForm(request.POST, instance=agendamento, usuario=request.user)
+        _bloquear_data_do_post(request)
         if form.is_valid():
             agendamento = form.save(commit=False)
             if request.user.is_staff:
