@@ -14,8 +14,10 @@ from kerberos.forms.FormColaborador import ColaboradorForm
 from kerberos.forms.FormPet import PetForm
 from kerberos.forms.FormUsuario import UsuarioForm
 from kerberos.models.agendamento import Agendamento, ItemAgendamento
+from kerberos.models.endereco import Endereco
 from kerberos.models.pet import Pet
 from kerberos.models.servico import Servico
+from kerberos.models.transporte import SolicitacaoTransporte
 from kerberos.models.usuario import Usuario
 from kerberos.models.horario import ExcecaoHorario, HorarioFuncionamento
 from kerberos.services.disponibilidade import horarios_disponiveis
@@ -214,6 +216,7 @@ class CadastroUsuarioPetTests(TestCase):
         usuario = Usuario.objects.get(email='ana@example.com')
         pet = Pet.objects.get(nome='Rex')
         self.assertEqual(usuario.nome, 'Ana Tutora')
+        self.assertEqual(usuario.endereco.logradouro, 'Praça da Sé')
         self.assertEqual(pet.usuario, usuario)
 
 
@@ -1018,6 +1021,54 @@ class AgendamentoHistoricoTests(TestCase):
         self.assertFalse(form_fora_expediente.is_valid())
         self.assertIn('data', form_fora_expediente.errors)
 
+    def test_edicao_no_mesmo_horario_valida_duracao_dos_servicos_selecionados(self):
+        self.servico.duracao_minutos = 300
+        self.servico.save(update_fields=['duracao_minutos'])
+        data_local = timezone.localtime(self.agendamento.data)
+        form = AgendamentoForm(
+            data={
+                'pet': self.pet.pk,
+                'data_dia': data_local.date().isoformat(),
+                'data': data_local.strftime('%Y-%m-%dT%H:%M'),
+                'servicos': [self.servico.pk],
+            },
+            instance=self.agendamento,
+            usuario=self.cliente,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('data', form.errors)
+
+    def test_edicao_no_mesmo_horario_rejeita_conflito_com_outro_agendamento(self):
+        self.servico.duracao_minutos = 60
+        self.servico.save(update_fields=['duracao_minutos'])
+        data_local = timezone.localtime(self.agendamento.data)
+        agendamento_conflitante = Agendamento.objects.create(
+            usuario=self.cliente,
+            pet=self.pet,
+            data=data_local + timedelta(minutes=30),
+        )
+        ItemAgendamento.objects.create(
+            agendamento=agendamento_conflitante,
+            servico=self.servico,
+            servico_nome=self.servico.nome,
+            preco_unitario=self.servico.valor,
+            duracao_minutos=30,
+        )
+        form = AgendamentoForm(
+            data={
+                'pet': self.pet.pk,
+                'data_dia': data_local.date().isoformat(),
+                'data': data_local.strftime('%Y-%m-%dT%H:%M'),
+                'servicos': [self.servico.pk],
+            },
+            instance=self.agendamento,
+            usuario=self.cliente,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('data', form.errors)
+
     def test_admin_altera_status_e_volta_para_data_selecionada(self):
         admin = Usuario.objects.create_user(
             username='admin-agendamento@example.com',
@@ -1188,3 +1239,241 @@ class PasswordChangeCsrfTests(TestCase):
         )
 
         self.assertRedirects(resposta_logout, reverse('login'))
+
+
+class SolicitacaoTransporteTests(TestCase):
+    def setUp(self):
+        self.cliente = Usuario.objects.create_user(
+            username='transporte-cliente@example.com',
+            email='transporte-cliente@example.com',
+            nome='Cliente Transporte',
+            password='Strong-Transport-Password!2026',
+        )
+        self.endereco = Endereco.objects.create(
+            cep='01001-000',
+            logradouro='Praça da Sé',
+            numero='1',
+            bairro='Sé',
+            cidade='São Paulo',
+            uf='SP',
+        )
+        self.cliente.endereco = self.endereco
+        self.cliente.save(update_fields=['endereco'])
+        self.pet = Pet.objects.create(
+            nome='Rex Transporte',
+            data_de_nascimento=date(2021, 1, 15),
+            raca='SRD',
+            porte='Médio',
+            usuario=self.cliente,
+        )
+        data_atendimento = timezone.localdate() + timedelta(days=2)
+        self.agendamento = Agendamento.objects.create(
+            usuario=self.cliente,
+            pet=self.pet,
+            data=timezone.make_aware(
+                datetime.combine(data_atendimento, time(14))
+            ),
+        )
+        self.admin = Usuario.objects.create_user(
+            username='transporte-admin@example.com',
+            email='transporte-admin@example.com',
+            nome='Admin Transporte',
+            password='Strong-Transport-Admin!2026',
+            is_staff=True,
+        )
+
+    def _dados_solicitacao(self, horario=None):
+        if horario is None:
+            horario = timezone.localtime(self.agendamento.data) - timedelta(hours=1)
+        return {
+            'endereco_retirada': 'Rua Nova, 10, Centro, São Paulo/SP',
+            'horario_preferido': horario.strftime('%Y-%m-%dT%H:%M'),
+            'observacoes': 'Ligar ao chegar.',
+            'politica_aceita': 'on',
+        }
+
+    def test_usuario_solicita_transporte_com_endereco_editavel(self):
+        self.client.force_login(self.cliente)
+        resposta_get = self.client.get(
+            reverse('solicitar_transporte', args=[self.agendamento.pk])
+        )
+
+        self.assertEqual(resposta_get.status_code, 200)
+        self.assertIn(
+            'Praça da Sé, 1 - Sé, São Paulo/SP, CEP 01001-000',
+            resposta_get.context['form']['endereco_retirada'].value(),
+        )
+
+        resposta_post = self.client.post(
+            reverse('solicitar_transporte', args=[self.agendamento.pk]),
+            self._dados_solicitacao(),
+        )
+
+        data_agendamento = timezone.localtime(self.agendamento.data).date().isoformat()
+        self.assertRedirects(
+            resposta_post,
+            f"{reverse('agendamentos')}?data={data_agendamento}",
+        )
+        solicitacao = SolicitacaoTransporte.objects.get(
+            agendamento=self.agendamento
+        )
+        self.assertEqual(solicitacao.status, SolicitacaoTransporte.StatusChoices.SOLICITADO)
+        self.assertEqual(
+            solicitacao.endereco_retirada,
+            'Rua Nova, 10, Centro, São Paulo/SP',
+        )
+
+    def test_nao_permite_retirada_depois_do_agendamento(self):
+        self.client.force_login(self.cliente)
+        horario_invalido = timezone.localtime(self.agendamento.data) + timedelta(minutes=1)
+
+        resposta = self.client.post(
+            reverse('solicitar_transporte', args=[self.agendamento.pk]),
+            self._dados_solicitacao(horario=horario_invalido),
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn('horario_preferido', resposta.context['form'].errors)
+        self.assertFalse(
+            SolicitacaoTransporte.objects.filter(
+                agendamento=self.agendamento
+            ).exists()
+        )
+
+    def test_solicitacao_exige_aceite_da_politica(self):
+        self.client.force_login(self.cliente)
+        dados = self._dados_solicitacao()
+        dados.pop('politica_aceita')
+
+        resposta = self.client.post(
+            reverse('solicitar_transporte', args=[self.agendamento.pk]),
+            dados,
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn('politica_aceita', resposta.context['form'].errors)
+        self.assertFalse(
+            SolicitacaoTransporte.objects.filter(
+                agendamento=self.agendamento
+            ).exists()
+        )
+
+    def test_usuario_nao_pode_solicitar_transporte_para_agendamento_alheio(self):
+        outro_cliente = Usuario.objects.create_user(
+            username='outro-transporte@example.com',
+            email='outro-transporte@example.com',
+            nome='Outro Cliente',
+            password='Strong-Other-Transport!2026',
+        )
+        outro_pet = Pet.objects.create(
+            nome='Outro Pet',
+            data_de_nascimento=date(2020, 5, 1),
+            raca='SRD',
+            porte='Pequeno',
+            usuario=outro_cliente,
+        )
+        agendamento_alheio = Agendamento.objects.create(
+            usuario=outro_cliente,
+            pet=outro_pet,
+            data=self.agendamento.data,
+        )
+        self.client.force_login(self.cliente)
+
+        resposta = self.client.get(
+            reverse('solicitar_transporte', args=[agendamento_alheio.pk])
+        )
+
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_equipe_confirma_horario_e_taxa(self):
+        solicitacao = SolicitacaoTransporte.objects.create(
+            agendamento=self.agendamento,
+            endereco_retirada='Rua Nova, 10',
+            horario_preferido=timezone.localtime(self.agendamento.data) - timedelta(hours=1),
+            politica_aceita=True,
+        )
+        self.client.force_login(self.admin)
+        horario_confirmado = timezone.localtime(self.agendamento.data) - timedelta(minutes=45)
+
+        resposta = self.client.post(
+            reverse('editar_solicitacao_transporte', args=[solicitacao.pk]),
+            {
+                'status': SolicitacaoTransporte.StatusChoices.CONFIRMADO,
+                'horario_confirmado': horario_confirmado.strftime('%Y-%m-%dT%H:%M'),
+                'taxa': '25.00',
+            },
+        )
+
+        self.assertRedirects(resposta, reverse('gerenciar_transportes'))
+        solicitacao.refresh_from_db()
+        self.assertEqual(solicitacao.status, SolicitacaoTransporte.StatusChoices.CONFIRMADO)
+        self.assertEqual(solicitacao.taxa, Decimal('25.00'))
+        self.assertEqual(solicitacao.horario_confirmado, horario_confirmado)
+
+    def test_equipe_nao_confirma_sem_horario_e_taxa(self):
+        solicitacao = SolicitacaoTransporte.objects.create(
+            agendamento=self.agendamento,
+            endereco_retirada='Rua Nova, 10',
+            horario_preferido=timezone.localtime(self.agendamento.data) - timedelta(hours=1),
+            politica_aceita=True,
+        )
+        self.client.force_login(self.admin)
+
+        resposta = self.client.post(
+            reverse('editar_solicitacao_transporte', args=[solicitacao.pk]),
+            {
+                'status': SolicitacaoTransporte.StatusChoices.CONFIRMADO,
+                'horario_confirmado': '',
+                'taxa': '',
+            },
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn('horario_confirmado', resposta.context['form'].errors)
+        self.assertIn('taxa', resposta.context['form'].errors)
+        solicitacao.refresh_from_db()
+        self.assertEqual(solicitacao.status, SolicitacaoTransporte.StatusChoices.SOLICITADO)
+
+    def test_cliente_nao_acessa_gerenciamento_de_transportes(self):
+        self.client.force_login(self.cliente)
+
+        resposta = self.client.get(reverse('gerenciar_transportes'))
+
+        self.assertEqual(resposta.status_code, 302)
+
+    def test_edicao_nao_antecipa_atendimento_para_depois_da_retirada(self):
+        servico = Servico.objects.create(
+            nome='Banho para transporte',
+            valor=Decimal('30.00'),
+            duracao_minutos=30,
+        )
+        for dia_semana in range(7):
+            HorarioFuncionamento.objects.create(
+                dia_semana=dia_semana,
+                fechado=False,
+                hora_abertura=time(9),
+                hora_fechamento=time(18),
+            )
+        horario_retirada = timezone.localtime(self.agendamento.data).replace(
+            hour=13, minute=30
+        )
+        SolicitacaoTransporte.objects.create(
+            agendamento=self.agendamento,
+            endereco_retirada='Rua Nova, 10',
+            horario_preferido=horario_retirada,
+            politica_aceita=True,
+        )
+        data_local = timezone.localtime(self.agendamento.data)
+        form = AgendamentoForm(
+            data={
+                'pet': self.pet.pk,
+                'data_dia': data_local.date().isoformat(),
+                'data': data_local.strftime('%Y-%m-%dT13:00'),
+                'servicos': [servico.pk],
+            },
+            instance=self.agendamento,
+            usuario=self.cliente,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('data', form.errors)

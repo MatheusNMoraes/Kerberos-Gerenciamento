@@ -55,6 +55,9 @@
                     <a href="{% url 'agendamentos' %}" class="nav-btn {% block nav_admin_agendamentos %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
                         <i class="bi bi-calendar-check me-2 fs-5"></i>Agendamentos
                     </a>
+                    <a href="{% url 'gerenciar_transportes' %}" class="nav-btn mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
+                        <i class="bi bi-car-front me-2 fs-5"></i>Transportes
+                    </a>
                     <a href="{% url 'listar_pets' %}" class="nav-btn {% block nav_admin_pets %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
                         <i class="bi bi-card-list me-2 fs-5"></i>Todos os Pets
                     </a>
@@ -82,6 +85,9 @@
                     <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2">Atendimentos</span>
                     <a href="{% url 'agendamentos' %}" class="nav-btn {% block nav_colaborador_agendamentos %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
                         <i class="bi bi-calendar-check me-2 fs-5"></i>Agendamentos
+                    </a>
+                    <a href="{% url 'gerenciar_transportes' %}" class="nav-btn mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
+                        <i class="bi bi-car-front me-2 fs-5"></i>Transportes
                     </a>
                     <a href="{% url 'listar_pets' %}" class="nav-btn {% block nav_colaborador_pets %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
                         <i class="bi bi-card-list me-2 fs-5"></i>Pets

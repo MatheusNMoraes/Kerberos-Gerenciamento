@@ -36,6 +36,11 @@ from .views.ViewServico import (listar_servicos, salvar_servico, deletar_servico
 from .views.ViewPerfil import (perfil)
 from .views.ViewLogin import (login)
 from .views.ViewCadastrar import (cadastrar_usuario)
+from .views.ViewTransporte import (
+    editar_solicitacao_transporte,
+    gerenciar_transportes,
+    solicitar_transporte,
+)
 
 
 urlpatterns = [
@@ -65,6 +70,17 @@ urlpatterns = [
     path('agendamentos/novo/', login_required(criar_agendamento), name='criar_agendamento'),
     path('agendamentos/<int:pk>/editar/', login_required(editar_agendamento), name='editar_agendamento'),
     path('agendamentos/<int:pk>/deletar/', login_required(deletar_agendamento), name='deletar_agendamento'),
+    path(
+        'agendamentos/<int:agendamento_id>/transporte/',
+        solicitar_transporte,
+        name='solicitar_transporte',
+    ),
+    path('transportes/', gerenciar_transportes, name='gerenciar_transportes'),
+    path(
+        'transportes/<int:pk>/editar/',
+        editar_solicitacao_transporte,
+        name='editar_solicitacao_transporte',
+    ),
 
     path('clientes/', administrador_required(listar_clientes), name='listar_clientes'),
     path('clientes/novo/', administrador_required(criar_cliente), name='criar_cliente'),

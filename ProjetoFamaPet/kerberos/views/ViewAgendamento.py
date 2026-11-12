@@ -60,7 +60,7 @@ def agendamentos(request):
     agendamentos_lista = list(
         base_qs
         .prefetch_related('itens')
-        .select_related('usuario', 'pet')
+        .select_related('usuario', 'pet', 'solicitacao_transporte')
         .filter(data__date=data_selecionada)
         .order_by('data')
     )
@@ -69,6 +69,7 @@ def agendamentos(request):
         'agendamentos': agendamentos_lista,
         'data_selecionada': data_selecionada,
         'status_choices': Agendamento.StatusChoices.choices,
+        'agora': timezone.now(),
     }
 
     return render(request, 'agendamento/agendamentos.html', contexto)

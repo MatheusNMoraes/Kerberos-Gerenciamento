@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django import forms
 from django.db.models import Q
 from django.utils import timezone
@@ -98,10 +99,36 @@ class AgendamentoForm(forms.ModelForm):
             self.add_error("data", "O horário selecionado não corresponde ao dia informado.")
             return cleaned_data
 
+        if self.instance.pk:
+            try:
+                transporte = self.instance.solicitacao_transporte
+            except ObjectDoesNotExist:
+                transporte = None
+            if (
+                transporte
+                and transporte.status
+                in (
+                    transporte.StatusChoices.SOLICITADO,
+                    transporte.StatusChoices.CONFIRMADO,
+                )
+                and (
+                    data <= transporte.horario_preferido
+                    or (
+                        transporte.horario_confirmado
+                        and data <= transporte.horario_confirmado
+                    )
+                )
+            ):
+                self.add_error(
+                    "data",
+                    "O novo horário precisa ser posterior ao horário de retirada "
+                    "da solicitação de transporte.",
+                )
+
         if self.instance.pk and self.instance.data:
             original = self.instance.data.replace(second=0, microsecond=0)
             enviado = data.replace(second=0, microsecond=0)
-            if enviado == original:
+            if enviado == original and data < timezone.now():
                 return cleaned_data
 
         duracao = sum(servico.duracao_minutos for servico in servicos)

@@ -1,0 +1,40 @@
+{% extends 'base/base.html' %}
+
+{% block titulo %}Gerenciar transporte — FamaPet{% endblock %}
+
+{% block content %}
+<div class="container my-4" style="max-width: 700px;">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <h2 class="h4 fw-bold">Gerenciar transporte</h2>
+      <p>
+        <strong>Pet:</strong> {{ solicitacao.agendamento.pet.nome }}<br>
+        <strong>Tutor:</strong> {{ solicitacao.agendamento.usuario.nome }}<br>
+        <strong>Atendimento:</strong> {{ solicitacao.agendamento.data|date:"d/m/Y, H:i" }}<br>
+        <strong>Retirada:</strong> {{ solicitacao.endereco_retirada }}<br>
+        <strong>Preferência do tutor:</strong> {{ solicitacao.horario_preferido|date:"d/m/Y, H:i" }}
+      </p>
+      {% if solicitacao.observacoes %}
+        <p><strong>Observações:</strong> {{ solicitacao.observacoes }}</p>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <a href="{% url 'gerenciar_transportes' %}" class="btn btn-outline-secondary">Voltar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
