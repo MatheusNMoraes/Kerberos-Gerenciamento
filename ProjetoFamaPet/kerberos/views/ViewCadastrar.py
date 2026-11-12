@@ -17,12 +17,10 @@ def cadastrar_usuario(request):
         form_pet = PetForm(request.POST, prefix='pet')
 
         if form_usuario.is_valid() and form_endereco.is_valid() and form_pet.is_valid():
+            endereco = form_endereco.save()
             usuario = form_usuario.save(commit=False)
+            usuario.endereco = endereco
             usuario.save()
-
-            endereco = form_endereco.save(commit=False)
-            endereco.usuario = usuario
-            endereco.save()
 
             pet = form_pet.save(commit=False)
             pet.usuario = usuario

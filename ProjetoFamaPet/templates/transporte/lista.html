@@ -1,0 +1,41 @@
+{% extends 'base/base.html' %}
+
+{% block titulo %}Solicitações de transporte — FamaPet{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="h3 fw-bold mb-4">Solicitações de transporte</h2>
+
+  {% for solicitacao in solicitacoes %}
+    <div class="card shadow-sm mb-3">
+      <div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
+        <div>
+          <h3 class="h5 mb-2">
+            {{ solicitacao.agendamento.pet.nome }} — {{ solicitacao.agendamento.usuario.nome }}
+          </h3>
+          <div><strong>Atendimento:</strong> {{ solicitacao.agendamento.data|date:"d/m/Y, H:i" }}</div>
+          <div><strong>Endereço de retirada:</strong> {{ solicitacao.endereco_retirada }}</div>
+          <div><strong>Horário preferido:</strong> {{ solicitacao.horario_preferido|date:"d/m/Y, H:i" }}</div>
+          <div><strong>Status:</strong> {{ solicitacao.get_status_display }}</div>
+          {% if solicitacao.horario_confirmado %}
+            <div><strong>Horário confirmado:</strong> {{ solicitacao.horario_confirmado|date:"d/m/Y, H:i" }}</div>
+          {% endif %}
+          {% if solicitacao.taxa != None %}
+            <div><strong>Taxa:</strong> R$ {{ solicitacao.taxa }}</div>
+          {% endif %}
+          {% if solicitacao.observacoes %}
+            <div><strong>Observações:</strong> {{ solicitacao.observacoes }}</div>
+          {% endif %}
+        </div>
+        <div>
+          <a href="{% url 'editar_solicitacao_transporte' solicitacao.pk %}" class="btn btn-outline-primary">
+            Gerenciar pedido
+          </a>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-muted">Ainda não há solicitações de transporte.</p>
+  {% endfor %}
+</div>
+{% endblock %}

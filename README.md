@@ -17,14 +17,15 @@ Portal do Cliente (Tutor)
 
 **Tecnologias Utilizadas**
 
-- Frontend:
+- Frontend: templates Django, Bootstrap e JavaScript
 - Backend: Python/Django
-- Banco de Dados:
-- Hospedagem: 
+- Banco de dados: SQLite no desenvolvimento e PostgreSQL na implantação Docker
+- Hospedagem: Docker Compose; requer um proxy HTTPS externo
 
 **Como Rodar o Projeto**
 
-Requer Python compatível com as dependências listadas em `requirements.txt`.
+Requer Python 3.12 ou compatível com as dependências listadas em
+`requirements.txt`.
 
 ### Windows (PowerShell)
 
@@ -43,10 +44,6 @@ na sessão atual e tente ativar novamente:
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
-na pasta raiz:
-```
-pip install -r requirements.txt
-```
 Gere uma chave secreta e configure `DJANGO_SECRET_KEY` no arquivo `.env`:
 
 ```powershell
@@ -83,9 +80,69 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Para produção, configure `DEBUG=False`, `DJANGO_SECRET_KEY`, `ALLOWED_HOSTS`,
-`CSRF_TRUSTED_ORIGINS` e `DATABASE_URL` com valores próprios do ambiente. Sirva
-a aplicação exclusivamente por HTTPS. Configure `USE_X_FORWARDED_PROTO=True`
-somente quando um proxy confiável remover e definir esse cabeçalho. Habilite
-`SECURE_HSTS_INCLUDE_SUBDOMAINS` ou `SECURE_HSTS_PRELOAD` somente se todos os
-subdomínios relevantes estiverem permanentemente preparados para HTTPS.
+## Implantação com Docker
+
+A configuração de produção usa Docker Compose, PostgreSQL e Gunicorn. O
+Compose publica a aplicação apenas em `127.0.0.1:8000`; coloque um proxy
+reverso com TLS na frente dela. Esse proxy deve encaminhar
+`X-Forwarded-Proto: https` e não deve permitir que clientes externos acessem
+diretamente a porta da aplicação.
+
+1. Copie `.env.production.example` para `.env.production` na raiz do
+   repositório. O arquivo real é ignorado pelo Git:
+
+   ```bash
+   cp .env.production.example .env.production
+   ```
+
+2. Preencha o domínio real em `ALLOWED_HOSTS` e
+   `CSRF_TRUSTED_ORIGINS`; configure uma chave secreta e as credenciais do
+   PostgreSQL e do SMTP. Gere uma chave Django com:
+
+   ```bash
+   cd ProjetoFamaPet
+   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+   cd ..
+   ```
+
+   Gere a senha do banco com `openssl rand -hex 32`. Não reutilize credenciais
+   de desenvolvimento nem comite `.env.production`. Mantenha
+   `SECURE_HSTS_INCLUDE_SUBDOMAINS=False` e
+   `SECURE_HSTS_PRELOAD=False` a menos que todos os subdomínios estejam
+   permanentemente preparados para HTTPS.
+
+3. Configure o proxy TLS para apontar a `http://127.0.0.1:8000` e definir
+   `X-Forwarded-Proto` com o protocolo recebido do cliente. O Compose habilita
+   `USE_X_FORWARDED_PROTO=True`; use esse ajuste somente porque a aplicação
+   fica atrás desse proxy confiável.
+
+4. Construa a imagem, suba o banco, aplique as migrações e inicie a aplicação:
+
+   ```bash
+   docker compose --env-file .env.production build
+   docker compose --env-file .env.production up -d db
+   docker compose --env-file .env.production run --rm web python manage.py migrate --noinput
+   docker compose --env-file .env.production up -d web
+   ```
+
+   Os arquivos estáticos são coletados durante a construção da imagem e
+   servidos pelo WhiteNoise. Crie o usuário administrador com:
+
+   ```bash
+   docker compose --env-file .env.production run --rm web python manage.py createsuperuser
+   ```
+
+O endpoint `/healthz/` verifica se o processo web está respondendo. Os dados
+do PostgreSQL ficam no volume `postgres_data`; configure cópias de segurança
+fora do servidor e teste periodicamente a restauração. O volume Docker, por
+si só, não é uma estratégia de backup. Configure também monitoramento,
+alertas e retenção de logs no provedor de hospedagem.
+
+O GitHub Actions executa `check`, valida as migrações e roda os testes contra
+PostgreSQL a cada push e pull request.
+
+Para atualizar a aplicação, construa a nova imagem, aplique migrações de forma
+controlada e recrie o serviço web. Antes de atender usuários reais, valide em
+staging o fluxo de recuperação de senha por e-mail, os backups/restauração, o
+HTTPS e o procedimento de rollback. Os dados pessoais de tutores e pets
+exigem políticas operacionais de acesso, retenção e atendimento à LGPD.

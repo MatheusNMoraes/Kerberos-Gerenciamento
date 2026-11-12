@@ -24,7 +24,6 @@ if (
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '[::1]'])
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -42,6 +41,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+if not DEBUG:
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 ROOT_URLCONF = "FamaPet.urls"
 
@@ -79,6 +80,25 @@ AUTHENTICATION_BACKENDS = [
     'kerberos.backends.EmailOrUsernameBackend',
 ]
 
+EMAIL_BACKEND = env(
+    'EMAIL_BACKEND',
+    default=(
+        'django.core.mail.backends.console.EmailBackend'
+        if DEBUG
+        else 'django.core.mail.backends.smtp.EmailBackend'
+    ),
+)
+EMAIL_HOST = env('EMAIL_HOST', default='localhost')
+EMAIL_PORT = env.int('EMAIL_PORT', default=25)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=False)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+DEFAULT_FROM_EMAIL = env(
+    'DEFAULT_FROM_EMAIL',
+    default='Fama Pet <noreply@famapet.local>',
+)
+
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'listar_pets'
 LOGOUT_REDIRECT_URL = 'home'
@@ -99,6 +119,10 @@ if env.bool('USE_X_FORWARDED_PROTO', default=False):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 if not DEBUG:
+    if EMAIL_BACKEND == "django.core.mail.backends.console.EmailBackend":
+        raise ImproperlyConfigured(
+            'Configure um backend de e-mail real antes de iniciar em produção.'
+        )
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
@@ -110,6 +134,15 @@ if not DEBUG:
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -118,3 +151,17 @@ CSRF_TRUSTED_ORIGINS = env.list(
     'CSRF_TRUSTED_ORIGINS',
     default=[],
 )
+if DEBUG:
+    for origin in (
+        'http://localhost:8000',
+        'https://localhost:8000',
+        'http://localhost:8001',
+        'https://localhost:8001',
+        'http://127.0.0.1:8000',
+        'https://127.0.0.1:8000',
+        'http://127.0.0.1:8001',
+        'https://127.0.0.1:8001',
+        'https://*.app.github.dev',
+    ):
+        if origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)

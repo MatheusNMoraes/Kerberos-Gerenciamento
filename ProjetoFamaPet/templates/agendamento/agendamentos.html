@@ -61,6 +61,16 @@
                 <strong>Status:</strong> 
                 <span class="badge bg-secondary bg-opacity-10 text-secondary fw-semibold">{{ agendamento.get_status_display }}</span>
               </div>
+              {% if agendamento.solicitacao_transporte %}
+                <div class="mb-1">
+                  <strong>Transporte:</strong>
+                  <span class="badge bg-info bg-opacity-10 text-dark">{{ agendamento.solicitacao_transporte.get_status_display }}</span>
+                </div>
+              {% elif not user.is_staff and agendamento.data > agora and agendamento.status != "Cancelado" and agendamento.status != "Concluido" %}
+                <a href="{% url 'solicitar_transporte' agendamento.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                  <i class="bi bi-car-front me-1"></i>Solicitar busca do pet
+                </a>
+              {% endif %}
               {% if user.is_staff %}
                 <form
                   method="post"

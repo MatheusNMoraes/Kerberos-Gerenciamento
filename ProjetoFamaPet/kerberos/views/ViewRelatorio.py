@@ -2,6 +2,7 @@ from datetime import datetime
 from django.db.models import Sum, Count
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 
 from kerberos.models.agendamento import Agendamento, ItemAgendamento
@@ -10,6 +11,9 @@ from kerberos.models.pet import Pet
 
 @login_required
 def relatorio(request):
+    if request.user.is_colaborador:
+        raise PermissionDenied
+
     agora = timezone.now()
     hoje = timezone.localdate(agora)
     data_inicio_str = request.GET.get('data_inicio')

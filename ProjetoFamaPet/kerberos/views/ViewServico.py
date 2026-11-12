@@ -1,18 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from kerberos.decorators import administrador_required
 from ..models.servico import Servico
 from ..forms.FormServico import ServicoForm
 
 
-@staff_member_required
+@administrador_required
 def listar_servicos(request):
     """Lista todos os serviços cadastrados no sistema."""
     servicos = Servico.objects.all().order_by('nome')
     return render(request, 'servicos/listar_servicos.html', {'servicos': servicos})
 
 
-@staff_member_required
+@administrador_required
 def salvar_servico(request, pk=None):
     """View reutilizável para Criar e Editar Serviços."""
     if pk:
@@ -43,7 +43,7 @@ def salvar_servico(request, pk=None):
     })
 
 
-@staff_member_required
+@administrador_required
 def deletar_servico(request, pk):
     """Inativa ou deleta o serviço."""
     servico = get_object_or_404(Servico, pk=pk)

@@ -62,6 +62,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     )
 
     is_staff = models.BooleanField(default=False)
+    is_colaborador = models.BooleanField(default=False, verbose_name="Colaborador")
     is_active = models.BooleanField(default=True)
 
     objects = UsuarioManager()
@@ -76,6 +77,10 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.nome} (@{self.username})"
+
+    @property
+    def is_administrador(self):
+        return self.is_superuser or (self.is_staff and not self.is_colaborador)
 
     def clean(self):
         super().clean()

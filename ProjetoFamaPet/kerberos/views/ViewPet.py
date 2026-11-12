@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -62,6 +63,9 @@ def listar_pets(request):
 @login_required
 def criar_pet(request):
     """Cadastra um novo Pet."""
+    if request.user.is_colaborador:
+        raise PermissionDenied
+
     if request.method == 'POST':
         form = PetForm(request.POST, user=request.user)
         if form.is_valid():
@@ -82,6 +86,9 @@ def criar_pet(request):
 @login_required
 def editar_pet(request, pk):
     """Edita os dados de um Pet existente."""
+    if request.user.is_colaborador:
+        raise PermissionDenied
+
     pet = _get_pet_or_404(request.user, pk)
 
     if request.method == 'POST':
@@ -106,6 +113,9 @@ def editar_pet(request, pk):
 @require_POST
 def deletar_pet(request, pk):
     """Deleta o Pet com verificação de permissão."""
+    if request.user.is_colaborador:
+        raise PermissionDenied
+
     pet = _get_pet_or_404(request.user, pk)
     nome_pet = pet.nome
     pet.delete()

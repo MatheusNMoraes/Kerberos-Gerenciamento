@@ -164,8 +164,7 @@
                 </div>
                 <div class="form-check">
                   {{ form_usuario.aceita_regulamento }}
-                  <label class="form-check-label" for="{{ form_usuario.aceita_regulamento.id_for_label }}">{{
-                    form_usuario.aceita_regulamento.label }}</label>
+                  <label class="form-check-label" for="{{ form_usuario.aceita_regulamento.id_for_label }}">{{form_usuario.aceita_regulamento.label }}</label>
                   {% if form_usuario.aceita_regulamento.errors %}
                   <div class="text-danger small mt-1">{{ form_usuario.aceita_regulamento.errors.0 }}</div>
                   {% endif %}

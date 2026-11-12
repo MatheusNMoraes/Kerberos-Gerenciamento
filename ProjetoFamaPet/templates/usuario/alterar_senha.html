@@ -1,0 +1,50 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Redefinir senha — FamaPet{% endblock %}
+{% block nav_clientes %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 720px;">
+        <div class="mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'listar_clientes' %}" class="text-decoration-none text-muted small">Clientes</a></li>
+                    <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Redefinir senha</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-dark mb-1 brand-font">Redefinir senha</h2>
+            <p class="text-muted small mb-0">Defina uma nova senha para {{ usuario.nome }}. A senha atual não pode ser consultada.</p>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label fw-bold">Nova senha</label>
+                        {{ form.password1 }}
+                        {% if form.password1.help_text %}<div class="form-text">{{ form.password1.help_text }}</div>{% endif %}
+                        {% if form.password1.errors %}<div class="invalid-feedback d-block">{{ form.password1.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label fw-bold">Confirme a nova senha</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}<div class="invalid-feedback d-block">{{ form.password2.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+                        <a href="{% url 'listar_clientes' %}" class="btn btn-light border">Cancelar</a>
+                        <button type="submit" class="btn btn-warning fw-bold">Salvar nova senha</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

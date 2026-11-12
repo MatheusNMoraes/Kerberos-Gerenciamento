@@ -33,7 +33,9 @@ staticfiles/
 # Configurações de Ambiente e Chaves Secretas
 # ==========================================
 .env
-.env.local
+.env.*
+!.env.example
+!.env.production.example
 .secret
 secrets.json
 

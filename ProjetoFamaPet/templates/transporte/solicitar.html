@@ -1,0 +1,41 @@
+{% extends 'base/base.html' %}
+
+{% block titulo %}Solicitar transporte — FamaPet{% endblock %}
+{% block nav_agendamentos %}active{% endblock %}
+
+{% block content %}
+<div class="container my-4" style="max-width: 700px;">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <h2 class="h4 fw-bold">Solicitar busca do pet</h2>
+      <p class="text-muted">
+        {{ agendamento.pet.nome }} tem atendimento em {{ agendamento.data|date:"d/m/Y, H:i" }}.
+        A equipe confirmará o horário e a taxa antes de aceitar o transporte.
+      </p>
+      <p>
+        <a href="{% url 'politica-transporte' %}" target="_blank" rel="noopener">
+          Leia a política de transporte
+        </a>
+      </p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Enviar solicitação</button>
+          <a href="{% url 'agendamentos' %}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
