@@ -125,17 +125,27 @@ class AgendamentoForm(forms.ModelForm):
                     "da solicitação de transporte.",
                 )
 
+        preservar_horario_historico = False
         if self.instance.pk and self.instance.data:
             original = self.instance.data.replace(second=0, microsecond=0)
             enviado = data.replace(second=0, microsecond=0)
-            if enviado == original and data < timezone.now():
-                return cleaned_data
+            preservar_horario_historico = (
+                enviado == original and data < timezone.now()
+            )
+            if preservar_horario_historico:
+                servicos_originais = set(
+                    self.instance.itens.values_list("servico_id", flat=True)
+                )
+                servicos_selecionados = {servico.pk for servico in servicos}
+                if servicos_selecionados == servicos_originais:
+                    return cleaned_data
 
         duracao = sum(servico.duracao_minutos for servico in servicos)
         disponiveis = horarios_disponiveis(
             data_dia,
             duracao,
             agendamento_id=self.instance.pk,
+            incluir_passados=preservar_horario_historico,
         )
         if not any(
             horario.replace(second=0, microsecond=0)

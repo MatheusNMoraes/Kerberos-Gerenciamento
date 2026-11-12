@@ -41,7 +41,12 @@ def bloquear_configuracao_dia(data):
         ).first()
 
 
-def horarios_disponiveis(data, duracao_minutos, agendamento_id=None):
+def horarios_disponiveis(
+    data,
+    duracao_minutos,
+    agendamento_id=None,
+    incluir_passados=False,
+):
     if not duracao_minutos or duracao_minutos < 1:
         return []
 
@@ -80,7 +85,7 @@ def horarios_disponiveis(data, duracao_minutos, agendamento_id=None):
                 candidato < ocupado_fim and termino > ocupado_inicio
                 for ocupado_inicio, ocupado_fim in ocupados
             )
-            if candidato > agora and not conflita:
+            if (incluir_passados or candidato > agora) and not conflita:
                 horarios.append(candidato)
             candidato += passo
 

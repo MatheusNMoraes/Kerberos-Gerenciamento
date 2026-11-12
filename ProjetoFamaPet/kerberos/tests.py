@@ -23,6 +23,14 @@ from kerberos.models.horario import ExcecaoHorario, HorarioFuncionamento
 from kerberos.services.disponibilidade import horarios_disponiveis
 
 
+class HealthCheckTests(TestCase):
+    def test_endpoint_informa_que_aplicacao_responde(self):
+        response = self.client.get(reverse('health_check'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'ok')
+
+
 class PetAuthorizationTests(TestCase):
     def setUp(self):
         self.cliente_a = Usuario.objects.create_user(
@@ -890,6 +898,31 @@ class AgendamentoHistoricoTests(TestCase):
         )
 
         self.assertTrue(form.is_valid(), form.errors)
+
+    def test_edicao_historica_valida_duracao_dos_servicos(self):
+        data_original = timezone.localtime().replace(
+            hour=14, minute=0, second=0, microsecond=0
+        ) - timedelta(days=1)
+        self.agendamento.data = data_original
+        self.agendamento.save(update_fields=['data'])
+        servico_adicional = Servico.objects.create(
+            nome='Tosa histórica longa',
+            valor=Decimal('80.00'),
+            duracao_minutos=300,
+        )
+        form = AgendamentoForm(
+            data={
+                'pet': self.pet.pk,
+                'data_dia': data_original.date().isoformat(),
+                'data': data_original.strftime('%Y-%m-%dT%H:%M'),
+                'servicos': [self.servico.pk, servico_adicional.pk],
+            },
+            instance=self.agendamento,
+            usuario=self.cliente,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('data', form.errors)
 
     def test_lista_mostra_agendamento_fora_de_faixa_de_turno(self):
         data_agendamento = timezone.localtime(self.agendamento.data).replace(
