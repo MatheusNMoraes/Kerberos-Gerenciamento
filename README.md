@@ -80,6 +80,55 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Teste de implantação no Render
+
+Este projeto inclui um Blueprint em `render.yaml` para criar um serviço Django
+e um banco PostgreSQL no Render:
+
+1. Envie o repositório ao GitHub.
+2. No Render, abra **Blueprints** e escolha **New Blueprint Instance**.
+3. Conecte o repositório e aplique o Blueprint definido em `render.yaml`.
+4. Quando o serviço estiver criado, abra a URL `.onrender.com` indicada no
+   painel e teste o site, cadastro e login.
+
+O Render fornece automaticamente `RENDER_EXTERNAL_HOSTNAME`; a aplicação usa
+esse valor para `ALLOWED_HOSTS` e para a origem CSRF do endereço `.onrender.com`.
+Se adicionar domínio próprio, configure também `ALLOWED_HOSTS` e
+`CSRF_TRUSTED_ORIGINS` nas variáveis do serviço.
+
+O arquivo `.python-version` fixa a linha Python 3.12 usada localmente e na CI,
+evitando que o Render escolha uma versão incompatível por padrão.
+
+**Limitações do plano gratuito:** o serviço web pode dormir após inatividade e
+demorar para responder à primeira visita. O sistema de arquivos do serviço é
+temporário, então arquivos enviados localmente não persistem. O PostgreSQL
+gratuito expira após 30 dias. Use essa configuração apenas para teste e não
+armazene dados reais de clientes.
+
+O plano gratuito do Render bloqueia conexões SMTP de saída nas portas 25, 465
+e 587. Para testar recuperação de senha, configure um provedor de e-mail que
+ofereça SMTP em uma porta permitida (por exemplo, 2525); informe
+`EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` e `DEFAULT_FROM_EMAIL`
+nas variáveis do serviço. Até configurar o e-mail, não conte com o envio de
+mensagens de recuperação.
+
+No plano gratuito não há shell interativo no serviço. Para criar o primeiro
+administrador, use a URL externa do banco exibida no painel do Render a partir
+do seu computador. No terminal local, dentro de `ProjetoFamaPet`, defina
+temporariamente `DATABASE_URL` com essa URL e `DJANGO_SECRET_KEY` com a chave
+do serviço e execute:
+
+```bash
+python manage.py createsuperuser
+```
+
+Não salve a URL do banco nem a chave no repositório. Remova as variáveis do
+terminal depois do comando.
+
+O comando de inicialização executa as migrações antes de iniciar o servidor.
+Isso é adequado para o serviço gratuito de instância única usado no teste; um
+deploy escalado deve executar migrações em uma etapa de pré-deploy dedicada.
+
 ## Implantação com Docker
 
 A configuração de produção usa Docker Compose, PostgreSQL e Gunicorn. O
