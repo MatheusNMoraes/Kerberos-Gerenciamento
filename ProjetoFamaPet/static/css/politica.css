@@ -84,6 +84,7 @@ span.texto-laranja {
     margin-top: 1.5rem;
     margin-bottom: 3rem;
     max-width: 900px;
+    width: 100%;
 }
 
 .conteudo-politica h1, h2 {

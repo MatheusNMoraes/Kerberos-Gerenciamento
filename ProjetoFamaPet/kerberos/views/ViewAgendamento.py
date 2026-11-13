@@ -15,6 +15,7 @@ from kerberos.forms.FormAgendamento import AgendamentoForm
 from kerberos.decorators import operador_required
 from kerberos.models.agendamento import Agendamento, ItemAgendamento
 from kerberos.models.servico import Servico
+from kerberos.models.usuario import Usuario
 from kerberos.services.disponibilidade import (
     bloquear_configuracao_dia,
     horarios_disponiveis,
@@ -45,11 +46,11 @@ def agendamentos(request):
 
     if data_str:
         try:
-            data_selecionada = datetime.strptime(data_str, '%Y-%m-%d').date()
+            data_selecionada = date.fromisoformat(data_str)
         except ValueError:
-            data_selecionada = timezone.now().date()
+            data_selecionada = None
     else:
-        data_selecionada = timezone.now().date()
+        data_selecionada = None
 
     # Staff/Admin vê a agenda completa do petshop; Cliente vê apenas os seus
     if request.user.is_staff:
@@ -57,13 +58,15 @@ def agendamentos(request):
     else:
         base_qs = Agendamento.objects.filter(usuario=request.user)
 
-    agendamentos_lista = list(
+    agendamentos_qs = (
         base_qs
         .prefetch_related('itens')
-        .select_related('usuario', 'pet', 'solicitacao_transporte')
-        .filter(data__date=data_selecionada)
+        .select_related('usuario', 'pet', 'colaborador', 'solicitacao_transporte')
         .order_by('data')
     )
+    if data_selecionada:
+        agendamentos_qs = agendamentos_qs.filter(data__date=data_selecionada)
+    agendamentos_lista = list(agendamentos_qs)
 
     contexto = {
         'agendamentos': agendamentos_lista,
@@ -84,6 +87,16 @@ def horarios_disponiveis_json(request):
 
     ids_servicos = request.GET.getlist("servicos")
     if not ids_servicos or any(not item.isdigit() for item in ids_servicos):
+        return JsonResponse({"horarios": []})
+
+    colaborador_id = request.GET.get("colaborador")
+    if not colaborador_id or not colaborador_id.isdigit():
+        return JsonResponse({"horarios": []})
+    if not Usuario.objects.filter(
+        pk=colaborador_id,
+        is_colaborador=True,
+        is_active=True,
+    ).exists():
         return JsonResponse({"horarios": []})
 
     agendamento = None
@@ -109,6 +122,7 @@ def horarios_disponiveis_json(request):
         data_selecionada,
         duracao,
         agendamento_id=agendamento.pk if agendamento else None,
+        colaborador_id=int(colaborador_id),
     )
     return JsonResponse({
         "horarios": [

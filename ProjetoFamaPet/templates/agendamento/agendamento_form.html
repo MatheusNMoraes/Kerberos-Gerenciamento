@@ -39,6 +39,16 @@
         </div>
 
         <div class="mb-3.5 mb-md-4">
+          <label for="{{ form.colaborador.id_for_label }}" class="form-label fw-bold text-dark">
+            <i class="bi bi-person-badge me-1 text-warning"></i> Profissional responsável
+          </label>
+          {{ form.colaborador }}
+          {% if form.colaborador.errors %}
+            <div class="text-danger small mt-1">{{ form.colaborador.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3.5 mb-md-4">
           <label for="{{ form.data_dia.id_for_label }}" class="form-label fw-bold text-dark">
             <i class="bi bi-calendar3 me-1 text-warning"></i> Dia
           </label>
@@ -53,7 +63,7 @@
             <i class="bi bi-clock me-1 text-warning"></i> Horário disponível
           </label>
           <select id="horario-disponivel" class="form-select" data-url="{% url 'horarios_disponiveis' %}" disabled>
-            <option value="">Selecione o dia e os serviços</option>
+            <option value="">Selecione o profissional, dia e serviços</option>
           </select>
           {{ form.data }}
           {% if form.data.errors %}

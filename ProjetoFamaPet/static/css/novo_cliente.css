@@ -29,6 +29,7 @@ body {
     color: var(--preto);
     font-family: var(--fonte-base);
     min-height: 100vh;
+    overflow-x: clip;
 }
 
 h1, h2, h3, h4, .brand-font {
@@ -39,6 +40,35 @@ h1, h2, h3, h4, .brand-font {
 .content-wrapper {
     max-width: 900px;
     width: 100%;
+    min-width: 0;
+}
+
+img,
+video,
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+svg {
+    max-width: 100%;
+}
+
+.row > * {
+    min-width: 0;
+}
+
+.form-control,
+.form-select,
+textarea {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.table-responsive {
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
 }
 
 /* --- Estrutura e Sidebar --- */
@@ -231,5 +261,16 @@ h1, h2, h3, h4, .brand-font {
     }
     .main-content {
         margin-left: 280px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .container-fluid {
+        padding-right: 0.75rem !important;
+        padding-left: 0.75rem !important;
+    }
+
+    .card-body {
+        padding: 1rem !important;
     }
 }

@@ -5,6 +5,7 @@ from django.utils import timezone
 from kerberos.models.agendamento import Agendamento
 from kerberos.models.pet import Pet
 from kerberos.models.servico import Servico
+from kerberos.models.usuario import Usuario
 from kerberos.services.disponibilidade import horarios_disponiveis
 
 
@@ -29,13 +30,25 @@ class AgendamentoForm(forms.ModelForm):
         label="Serviços Desejados"
     )
 
+    colaborador = forms.ModelChoiceField(
+        queryset=Usuario.objects.none(),
+        required=True,
+        label="Profissional responsável",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
     class Meta:
         model = Agendamento
-        fields = ["pet", "data"]
+        fields = ["pet", "data", "colaborador"]
 
     def __init__(self, *args, usuario=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.usuario = usuario
+
+        self.fields["colaborador"].queryset = Usuario.objects.filter(
+            is_colaborador=True,
+            is_active=True,
+        ).order_by("nome")
 
         if self.instance.pk and self.instance.data:
             data_local = timezone.localtime(self.instance.data)
@@ -91,8 +104,9 @@ class AgendamentoForm(forms.ModelForm):
         data = cleaned_data.get("data")
         data_dia = cleaned_data.get("data_dia")
         servicos = cleaned_data.get("servicos")
+        colaborador = cleaned_data.get("colaborador")
 
-        if not data or not data_dia or not servicos:
+        if not data or not data_dia or not servicos or not colaborador:
             return cleaned_data
 
         if timezone.localtime(data).date() != data_dia:
@@ -146,6 +160,7 @@ class AgendamentoForm(forms.ModelForm):
             duracao,
             agendamento_id=self.instance.pk,
             incluir_passados=preservar_horario_historico,
+            colaborador_id=colaborador.pk,
         )
         if not any(
             horario.replace(second=0, microsecond=0)
