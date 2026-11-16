@@ -23,6 +23,16 @@ class Agendamento(models.Model):
         related_name="agendamentos"
     )
 
+    colaborador = models.ForeignKey(
+        "Usuario",
+        on_delete=models.SET_NULL,
+        related_name="agendamentos_atendidos",
+        null=True,
+        blank=True,
+        limit_choices_to={"is_colaborador": True},
+        verbose_name="Colaborador responsável",
+    )
+
     data = models.DateTimeField()
     status = models.CharField(
         max_length=20,

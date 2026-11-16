@@ -617,11 +617,23 @@ class ColaboradorTests(TestCase):
             valor=Decimal('35.00'),
             duracao_minutos=60,
         )
+        colaborador = Usuario.objects.create_user(
+            username='colaborador-api@example.com',
+            email='colaborador-api@example.com',
+            nome='Colaborador API',
+            password='Strong-Collaborator-Password!2026',
+            is_staff=True,
+            is_colaborador=True,
+        )
         self.client.force_login(self.cliente)
 
         response = self.client.get(
             reverse('horarios_disponiveis'),
-            {'data': data_selecionada.isoformat(), 'servicos': [servico.pk]},
+            {
+                'data': data_selecionada.isoformat(),
+                'servicos': [servico.pk],
+                'colaborador': colaborador.pk,
+            },
         )
 
         self.assertEqual(response.status_code, 200)
@@ -629,6 +641,12 @@ class ColaboradorTests(TestCase):
         self.assertIn('09:00', rotulos)
         self.assertNotIn('12:00', rotulos)
         self.assertNotIn('17:30', rotulos)
+
+        sem_profissional = self.client.get(
+            reverse('horarios_disponiveis'),
+            {'data': data_selecionada.isoformat(), 'servicos': [servico.pk]},
+        )
+        self.assertEqual(sem_profissional.json(), {'horarios': []})
 
 
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
@@ -818,6 +836,14 @@ class AgendamentoHistoricoTests(TestCase):
             nome='Cliente Agendamento',
             password='Strong-Client-Password!2026',
         )
+        self.colaborador = Usuario.objects.create_user(
+            username='colaborador-agendamento@example.com',
+            email='colaborador-agendamento@example.com',
+            nome='Profissional Agendamento',
+            password='Strong-Collaborator-Password!2026',
+            is_staff=True,
+            is_colaborador=True,
+        )
         self.pet = Pet.objects.create(
             nome='Toby',
             data_de_nascimento=date(2021, 4, 12),
@@ -843,6 +869,7 @@ class AgendamentoHistoricoTests(TestCase):
         self.agendamento = Agendamento.objects.create(
             usuario=self.cliente,
             pet=self.pet,
+            colaborador=self.colaborador,
             data=timezone.make_aware(datetime.combine(data_base, time(14))),
         )
         ItemAgendamento.objects.create(
@@ -853,11 +880,58 @@ class AgendamentoHistoricoTests(TestCase):
             duracao_minutos=25,
         )
 
+    def test_lista_mostra_todos_os_agendamentos_sem_filtro(self):
+        outro_agendamento = Agendamento.objects.create(
+            usuario=self.cliente,
+            pet=self.pet,
+            data=self.agendamento.data + timedelta(days=1),
+        )
+        self.client.force_login(self.cliente)
+
+        response = self.client.get(reverse('agendamentos'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            {item.pk for item in response.context['agendamentos']},
+            {self.agendamento.pk, outro_agendamento.pk},
+        )
+        self.assertContains(response, 'Todos os agendamentos')
+        self.assertContains(
+            response,
+            timezone.localtime(outro_agendamento.data).strftime('%d/%m/%Y'),
+        )
+
+    def test_lista_filtra_agendamentos_pela_data_escolhida(self):
+        outro_agendamento = Agendamento.objects.create(
+            usuario=self.cliente,
+            pet=self.pet,
+            data=self.agendamento.data + timedelta(days=1),
+        )
+        data_selecionada = timezone.localtime(self.agendamento.data).date()
+        self.client.force_login(self.cliente)
+
+        response = self.client.get(
+            reverse('agendamentos'),
+            {'data': data_selecionada.isoformat()},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [item.pk for item in response.context['agendamentos']],
+            [self.agendamento.pk],
+        )
+        self.assertNotIn(
+            outro_agendamento.pk,
+            [item.pk for item in response.context['agendamentos']],
+        )
+        self.assertEqual(response.context['data_selecionada'], data_selecionada)
+
     def test_form_rejeita_agendamento_no_passado(self):
         data_passada = timezone.localtime() - timedelta(days=1)
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': data_passada.date().isoformat(),
                 'data': data_passada.strftime('%Y-%m-%dT%H:%M'),
                 'servicos': [self.servico.pk],
@@ -868,10 +942,45 @@ class AgendamentoHistoricoTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('data', form.errors)
 
+    def test_form_exige_profissional_ativo(self):
+        data_selecionada = timezone.localdate() + timedelta(days=1)
+        form = AgendamentoForm(
+            data={
+                'pet': self.pet.pk,
+                'data_dia': data_selecionada.isoformat(),
+                'data': f'{data_selecionada.isoformat()}T09:00',
+                'servicos': [self.servico.pk],
+            },
+            usuario=self.cliente,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('colaborador', form.errors)
+
+    def test_criacao_salva_profissional_escolhido(self):
+        data_selecionada = timezone.localdate() + timedelta(days=1)
+        self.client.force_login(self.cliente)
+
+        response = self.client.post(
+            reverse('criar_agendamento'),
+            {
+                'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
+                'data_dia': data_selecionada.isoformat(),
+                'data': f'{data_selecionada.isoformat()}T09:00',
+                'servicos': [self.servico.pk],
+            },
+        )
+
+        self.assertRedirects(response, reverse('agendamentos'))
+        agendamento_criado = Agendamento.objects.get(data__date=data_selecionada)
+        self.assertEqual(agendamento_criado.colaborador, self.colaborador)
+
     def test_form_rejeita_data_de_agendamento_do_ano_0001(self):
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': '0001-01-01',
                 'data': '0001-01-01T00:00',
                 'servicos': [self.servico.pk],
@@ -889,6 +998,7 @@ class AgendamentoHistoricoTests(TestCase):
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': data_original.date().isoformat(),
                 'data': data_original.strftime('%Y-%m-%dT%H:%M'),
                 'servicos': [self.servico.pk],
@@ -913,6 +1023,7 @@ class AgendamentoHistoricoTests(TestCase):
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': data_original.date().isoformat(),
                 'data': data_original.strftime('%Y-%m-%dT%H:%M'),
                 'servicos': [self.servico.pk, servico_adicional.pk],
@@ -941,6 +1052,7 @@ class AgendamentoHistoricoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '12:30')
         self.assertContains(response, self.pet.nome)
+        self.assertContains(response, self.colaborador.nome)
         self.assertContains(response, self.servico.nome)
         self.assertNotContains(response, 'Manhã')
 
@@ -955,6 +1067,7 @@ class AgendamentoHistoricoTests(TestCase):
             reverse('editar_agendamento', args=[self.agendamento.pk]),
             {
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': timezone.localtime(self.agendamento.data).date().isoformat(),
                 'data': timezone.localtime(self.agendamento.data).strftime('%Y-%m-%dT%H:%M'),
                 'servicos': [self.servico.pk],
@@ -1006,6 +1119,52 @@ class AgendamentoHistoricoTests(TestCase):
         self.assertNotIn('09:30', rotulos)
         self.assertIn('10:00', rotulos)
 
+    def test_horarios_disponiveis_sao_individuais_por_profissional(self):
+        outro_colaborador = Usuario.objects.create_user(
+            username='outro-colaborador@example.com',
+            email='outro-colaborador@example.com',
+            nome='Outro Profissional',
+            password='Strong-Other-Collaborator-Password!2026',
+            is_staff=True,
+            is_colaborador=True,
+        )
+        data_selecionada = timezone.localdate() + timedelta(days=1)
+        agendamento_ocupado = Agendamento.objects.create(
+            usuario=self.cliente,
+            pet=self.pet,
+            colaborador=self.colaborador,
+            data=timezone.make_aware(datetime.combine(data_selecionada, time(9))),
+        )
+        ItemAgendamento.objects.create(
+            agendamento=agendamento_ocupado,
+            servico=self.servico,
+            servico_nome=self.servico.nome,
+            preco_unitario=self.servico.valor,
+            duracao_minutos=45,
+        )
+
+        horarios_colaborador = horarios_disponiveis(
+            data_selecionada,
+            30,
+            colaborador_id=self.colaborador.pk,
+        )
+        horarios_outro = horarios_disponiveis(
+            data_selecionada,
+            30,
+            colaborador_id=outro_colaborador.pk,
+        )
+        rotulos_colaborador = {
+            timezone.localtime(horario).strftime('%H:%M')
+            for horario in horarios_colaborador
+        }
+        rotulos_outro = {
+            timezone.localtime(horario).strftime('%H:%M')
+            for horario in horarios_outro
+        }
+
+        self.assertNotIn('09:00', rotulos_colaborador)
+        self.assertIn('09:00', rotulos_outro)
+
     def test_excecao_de_fechamento_suspende_horarios_semanais(self):
         data_selecionada = timezone.localdate() + timedelta(days=1)
         ExcecaoHorario.objects.create(data=data_selecionada, fechado=True)
@@ -1034,6 +1193,7 @@ class AgendamentoHistoricoTests(TestCase):
         form_valido = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': data_selecionada.isoformat(),
                 'data': f'{data_selecionada.isoformat()}T09:00',
                 'servicos': [self.servico.pk],
@@ -1043,6 +1203,7 @@ class AgendamentoHistoricoTests(TestCase):
         form_fora_expediente = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': data_selecionada.isoformat(),
                 'data': f'{data_selecionada.isoformat()}T08:30',
                 'servicos': [self.servico.pk],
@@ -1061,6 +1222,7 @@ class AgendamentoHistoricoTests(TestCase):
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': data_local.date().isoformat(),
                 'data': data_local.strftime('%Y-%m-%dT%H:%M'),
                 'servicos': [self.servico.pk],
@@ -1091,6 +1253,7 @@ class AgendamentoHistoricoTests(TestCase):
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': data_local.date().isoformat(),
                 'data': data_local.strftime('%Y-%m-%dT%H:%M'),
                 'servicos': [self.servico.pk],
@@ -1299,10 +1462,19 @@ class SolicitacaoTransporteTests(TestCase):
             porte='Médio',
             usuario=self.cliente,
         )
+        self.colaborador = Usuario.objects.create_user(
+            username='transporte-colaborador@example.com',
+            email='transporte-colaborador@example.com',
+            nome='Colaborador Transporte',
+            password='Strong-Transport-Collaborator!2026',
+            is_staff=True,
+            is_colaborador=True,
+        )
         data_atendimento = timezone.localdate() + timedelta(days=2)
         self.agendamento = Agendamento.objects.create(
             usuario=self.cliente,
             pet=self.pet,
+            colaborador=self.colaborador,
             data=timezone.make_aware(
                 datetime.combine(data_atendimento, time(14))
             ),
@@ -1500,6 +1672,7 @@ class SolicitacaoTransporteTests(TestCase):
         form = AgendamentoForm(
             data={
                 'pet': self.pet.pk,
+                'colaborador': self.colaborador.pk,
                 'data_dia': data_local.date().isoformat(),
                 'data': data_local.strftime('%Y-%m-%dT13:00'),
                 'servicos': [servico.pk],

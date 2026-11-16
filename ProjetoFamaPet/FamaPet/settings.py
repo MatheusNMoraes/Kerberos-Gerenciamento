@@ -21,7 +21,15 @@ if (
         'Defina DJANGO_SECRET_KEY com pelo menos 50 caracteres aleatórios.'
     )
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '[::1]'])
+RENDER_EXTERNAL_HOSTNAME = env('RENDER_EXTERNAL_HOSTNAME', default='')
+ALLOWED_HOSTS = env.list(
+    'ALLOWED_HOSTS',
+    default=(
+        [RENDER_EXTERNAL_HOSTNAME]
+        if RENDER_EXTERNAL_HOSTNAME
+        else ['localhost', '127.0.0.1', '[::1]']
+    ),
+)
 
 INSTALLED_APPS = [
     "django.contrib.auth",
@@ -149,7 +157,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 CSRF_TRUSTED_ORIGINS = env.list(
     'CSRF_TRUSTED_ORIGINS',
-    default=[],
+    default=(
+        [f'https://{RENDER_EXTERNAL_HOSTNAME}']
+        if RENDER_EXTERNAL_HOSTNAME
+        else []
+    ),
 )
 if DEBUG:
     for origin in (

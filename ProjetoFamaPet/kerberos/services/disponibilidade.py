@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from django.db.models import Q
 from django.utils import timezone
 
 from kerberos.models.agendamento import Agendamento
@@ -46,6 +47,7 @@ def horarios_disponiveis(
     duracao_minutos,
     agendamento_id=None,
     incluir_passados=False,
+    colaborador_id=None,
 ):
     if not duracao_minutos or duracao_minutos < 1:
         return []
@@ -61,6 +63,10 @@ def horarios_disponiveis(
             Agendamento.StatusChoices.CONFIRMADO,
         ),
     ).prefetch_related("itens")
+    if colaborador_id is not None:
+        agendamentos = agendamentos.filter(
+            Q(colaborador_id=colaborador_id) | Q(colaborador__isnull=True)
+        )
     if agendamento_id:
         agendamentos = agendamentos.exclude(pk=agendamento_id)
     ocupados = [

@@ -14,7 +14,7 @@ body {
 .bg-banner {
     background-color: #fabb35;
     height: 50vh;
-    width: 100vw;
+    width: 100%;
 }
 
 /* Largura do cartão */
@@ -22,6 +22,7 @@ body {
     width: 100%;
     max-width: 440px;
     padding: 0 15px;
+    box-sizing: border-box;
 }
 
 /* Links das abas */
@@ -180,4 +181,14 @@ body {
     color: var(--auth-blue);
     font-size: 0.8rem;
     text-decoration: none;
+}
+
+@media (max-width: 400px) {
+    .auth-card {
+        padding: 1.25rem 1rem;
+    }
+
+    .help-link {
+        overflow-wrap: anywhere;
+    }
 }
