@@ -53,79 +53,85 @@
 
     <div class="p-3 p-md-4">
       {% for agendamento in agendamentos %}
-        <div class="agendamento-item d-flex align-items-start justify-content-between py-3 border-bottom border-light flex-wrap gap-2">
-          <div class="d-flex align-items-start gap-3">
-
+        <div class="agendamento-item d-flex flex-column py-3 border-bottom border-light gap-2">
+          
+          <!-- Top Row: Date & Time Badge + Action Buttons -->
+          <div class="d-flex align-items-center justify-content-between w-100">
             <span class="fw-bold text-nowrap badge bg-light text-dark border px-2.5 py-2 shadow-xs" style="font-size: 0.85rem;">
               <i class="bi bi-calendar3 me-1 text-muted"></i>{{ agendamento.data|date:"d/m/Y" }}
               <i class="bi bi-clock ms-2 me-1 text-muted"></i>{{ agendamento.data|date:"H:i" }}
             </span>
 
-            <div class="small text-secondary">
-              <div class="mb-1">
-                <strong>Pet:</strong> <span class="badge bg-warning bg-opacity-15 text-dark border border-warning border-opacity-25 px-2 py-1">{{ agendamento.pet.nome }}</span>
-              </div>
-              <div class="mb-1">
-                <strong>Profissional:</strong>
-                <span class="text-dark">{{ agendamento.colaborador.nome|default:"A definir" }}</span>
-              </div>
-              <div class="mb-1">
-                <strong>Serviços:</strong> <span class="text-dark">{{ agendamento.lista_servicos|default:"Nenhum serviço" }}</span>
-              </div>
-              <div class="mb-1">
-                <strong>Status:</strong> 
-                <span class="badge bg-secondary bg-opacity-10 text-secondary fw-semibold">{{ agendamento.get_status_display }}</span>
-              </div>
-              {% if agendamento.solicitacao_transporte %}
-                <div class="mb-1">
-                  <strong>Transporte:</strong>
-                  <span class="badge bg-info bg-opacity-10 text-dark">{{ agendamento.solicitacao_transporte.get_status_display }}</span>
-                </div>
-              {% elif not user.is_staff and agendamento.data > agora and agendamento.status != "Cancelado" and agendamento.status != "Concluido" %}
-                <a href="{% url 'solicitar_transporte' agendamento.id %}" class="btn btn-sm btn-outline-primary mt-2">
-                  <i class="bi bi-car-front me-1"></i>Solicitar busca do pet
-                </a>
-              {% endif %}
-              {% if user.is_staff %}
-                <form
-                  method="post"
-                  action="{% url 'alterar_status_agendamento' agendamento.id %}"
-                  class="row g-2 align-items-center mt-2"
-                >
-                  {% csrf_token %}
-                  <input type="hidden" name="data" value="{{ data_selecionada|date:'Y-m-d' }}">
-                  <label for="status-{{ agendamento.id }}" class="col-12 col-sm-auto form-label mb-0">Alterar status:</label>
-                  <div class="col-12 col-sm">
-                    <select id="status-{{ agendamento.id }}" name="status" class="form-select form-select-sm">
-                      {% for valor, rotulo in status_choices %}
-                        <option value="{{ valor }}" {% if agendamento.status == valor %}selected{% endif %}>{{ rotulo }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                  <div class="col-12 col-sm-auto d-grid">
-                    <button type="submit" class="btn btn-sm btn-primary">Salvar</button>
-                  </div>
-                </form>
-              {% endif %}
-              
-              <div class="text-muted mt-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
-                <span><i class="bi bi-hourglass-split me-1"></i>{{ agendamento.duracao_total_minutos }} min (Até {{ agendamento.data_fim_estimada|date:"H:i" }})</span>
-                <span>•</span>
-                <strong class="text-success fs-6">R$ {{ agendamento.valor_total }}</strong>
-              </div>
+            <div class="d-flex gap-1">
+              <a href="{% url 'editar_agendamento' agendamento.id %}" class="btn btn-sm btn-light border text-secondary rounded-2" title="Editar">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+              <a href="{% url 'deletar_agendamento' agendamento.id %}" class="btn btn-sm btn-light border text-danger rounded-2" title="Excluir">
+                <i class="bi bi-trash"></i>
+              </a>
             </div>
           </div>
 
-          <div class="d-flex gap-1 ms-auto align-self-center">
-            <a href="{% url 'editar_agendamento' agendamento.id %}" class="btn btn-sm btn-light border text-secondary rounded-2" title="Editar">
-              <i class="bi bi-pencil-square"></i>
-            </a>
-            <a href="{% url 'deletar_agendamento' agendamento.id %}" class="btn btn-sm btn-light border text-danger rounded-2" title="Excluir">
-              <i class="bi bi-trash"></i>
-            </a>
+          <!-- Details Section (Full Width) -->
+          <div class="small text-secondary w-100">
+            <div class="mb-1">
+              <strong>Pet:</strong> <span class="badge bg-warning bg-opacity-15 text-dark border border-warning border-opacity-25 px-2 py-1">{{ agendamento.pet.nome }}</span>
+            </div>
+            <div class="mb-1">
+              <strong>Profissional:</strong>
+              <span class="text-dark">{{ agendamento.colaborador.nome|default:"A definir" }}</span>
+            </div>
+            <div class="mb-1">
+              <strong>Serviços:</strong> <span class="text-dark">{{ agendamento.lista_servicos|default:"Nenhum serviço" }}</span>
+            </div>
+            <div class="mb-1">
+              <strong>Status:</strong> 
+              <span class="badge bg-secondary bg-opacity-10 text-secondary fw-semibold">{{ agendamento.get_status_display }}</span>
+            </div>
+            
+            {% if agendamento.solicitacao_transporte %}
+              <div class="mb-1">
+                <strong>Transporte:</strong>
+                <span class="badge bg-info bg-opacity-10 text-dark">{{ agendamento.solicitacao_transporte.get_status_display }}</span>
+              </div>
+            {% elif not user.is_staff and agendamento.data > agora and agendamento.status != "Cancelado" and agendamento.status != "Concluido" %}
+              <a href="{% url 'solicitar_transporte' agendamento.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                <i class="bi bi-car-front me-1"></i>Solicitar busca do pet
+              </a>
+            {% endif %}
+
+            {% if user.is_staff %}
+              <form
+                method="post"
+                action="{% url 'alterar_status_agendamento' agendamento.id %}"
+                class="row g-2 align-items-center mt-2"
+              >
+                {% csrf_token %}
+                <input type="hidden" name="data" value="{{ data_selecionada|date:'Y-m-d' }}">
+                <label for="status-{{ agendamento.id }}" class="col-12 col-sm-auto form-label mb-0">Alterar status:</label>
+                <div class="col-12 col-sm">
+                  <select id="status-{{ agendamento.id }}" name="status" class="form-select form-select-sm">
+                    {% for valor, rotulo in status_choices %}
+                      <option value="{{ valor }}" {% if agendamento.status == valor %}selected{% endif %}>{{ rotulo }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-12 col-sm-auto d-grid">
+                  <button type="submit" class="btn btn-sm btn-primary">Salvar</button>
+                </div>
+              </form>
+            {% endif %}
+            
+            <!-- Footer Row: Duration & Price -->
+            <div class="text-muted mt-2 d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1 border-top border-light" style="font-size: 0.8rem;">
+              <span><i class="bi bi-hourglass-split me-1"></i>{{ agendamento.duracao_total_minutos }} min (Até {{ agendamento.data_fim_estimada|date:"H:i" }})</span>
+              <strong class="text-success fs-6 text-now0rap">R$ {{ agendamento.valor_total }}</strong>
+            </div>
           </div>
+
         </div>
       {% empty %}
+        <!-- Empty state remains the same -->
         <div class="text-center py-5">
           <div class="text-muted mb-2">
             <i class="bi bi-calendar-x fs-1 opacity-50"></i>
@@ -140,7 +146,6 @@
         </div>
       {% endfor %}
     </div>
-  </div>
 
 </div>
 {% endblock %}
