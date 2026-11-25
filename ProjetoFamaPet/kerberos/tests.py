@@ -235,6 +235,23 @@ class UsuarioLoginTests(TestCase):
         self.assertContains(response, 'type="email"')
         self.assertContains(response, 'E-mail')
 
+    def test_login_invalido_exibe_mensagem_apenas_uma_vez(self):
+        response = self.client.post(
+            reverse('login'),
+            {
+                'username': 'inexistente@example.com',
+                'password': 'Senha-incorreta',
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(
+            response,
+            'Credenciais inválidas. Restam 4 tentativas antes do bloqueio.',
+            count=1,
+            status_code=400,
+        )
+
     @override_settings(CSRF_TRUSTED_ORIGINS=['https://localhost:8001'])
     def test_login_aceita_post_com_origem_https_confiavel(self):
         usuario = Usuario.objects.create_user(
