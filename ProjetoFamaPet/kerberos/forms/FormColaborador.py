@@ -1,20 +1,32 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 
 from ..models.usuario import Usuario
+from .mixins import NomeValidationMixin
 
 
-class ColaboradorForm(forms.ModelForm):
+class ColaboradorForm(NomeValidationMixin, forms.ModelForm):
     senha = forms.CharField(
         label="Senha",
         required=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        validators=[MinLengthValidator(8), MaxLengthValidator(128)],
+        widget=forms.PasswordInput(attrs={
+            "autocomplete": "new-password",
+            "minlength": "8",
+            "maxlength": "128",
+        }),
     )
     confirmar_senha = forms.CharField(
         label="Confirmar senha",
         required=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        validators=[MinLengthValidator(8), MaxLengthValidator(128)],
+        widget=forms.PasswordInput(attrs={
+            "autocomplete": "new-password",
+            "minlength": "8",
+            "maxlength": "128",
+        }),
     )
 
     class Meta:
@@ -28,6 +40,9 @@ class ColaboradorForm(forms.ModelForm):
         for field in self.fields.values():
             if not isinstance(field.widget, forms.CheckboxInput):
                 field.widget.attrs["class"] = "form-control"
+                max_length = getattr(field, "max_length", None)
+                if max_length:
+                    field.widget.attrs["maxlength"] = str(max_length)
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()

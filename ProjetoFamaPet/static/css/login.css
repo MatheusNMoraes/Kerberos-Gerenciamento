@@ -25,6 +25,10 @@ body {
     box-sizing: border-box;
 }
 
+.auth-wrapper--register {
+    max-width: 550px;
+}
+
 /* Links das abas */
 .tab-link {
     font-size: 1.1rem;
@@ -115,6 +119,26 @@ body {
     outline: none;
 }
 
+.auth-card input[type="number"],
+.auth-card input[type="date"],
+.auth-card input[type="search"],
+.auth-card select,
+.auth-card textarea {
+    width: 100%;
+    min-height: 44px;
+    background-color: #d8d8d8;
+    border: 1px solid #c0c0c0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.auth-card textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
 .auth-card .input-group > input.form-control {
     width: 1%;
     min-width: 0;
@@ -168,6 +192,36 @@ body {
 }
 
 @media (max-width: 576px) {
+    .auth-wrapper,
+    .auth-wrapper--register {
+        max-width: 100%;
+        padding-inline: 10px;
+    }
+
+    .auth-card {
+        border-radius: 10px;
+        width: 100%;
+        text-align: left;
+    }
+
+    .auth-card input,
+    .auth-card select,
+    .auth-card textarea {
+        font-size: 16px;
+    }
+
+    .auth-card > .d-flex,
+    .auth-card form + .d-flex {
+        width: 100%;
+    }
+
+    .auth-card form + .d-flex {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        text-align: center;
+    }
+
     .btn-home {
         width: 100%;
     }
@@ -184,11 +238,35 @@ body {
 }
 
 @media (max-width: 400px) {
+    .min-vh-100 {
+        min-height: 100dvh !important;
+        padding-block: 1rem !important;
+    }
+
+    .auth-wrapper,
+    .auth-wrapper--register {
+        padding-inline: 8px;
+    }
+
     .auth-card {
         padding: 1.25rem 1rem;
     }
 
+    .auth-card .tab-link,
+    .tab-link {
+        font-size: 1rem;
+    }
+
+    .auth-title {
+        text-align: center;
+    }
+
+    .auth-card .form-label {
+        width: 100%;
+    }
+
     .help-link {
         overflow-wrap: anywhere;
+        text-align: center;
     }
 }

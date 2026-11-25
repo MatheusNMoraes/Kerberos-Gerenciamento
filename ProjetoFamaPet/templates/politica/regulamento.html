@@ -17,8 +17,8 @@
 
 <body>
 
-    <header class="py-3 border-bottom">
-        <div class="container d-flex justify-content-between align-items-center">
+    <header class="py-3 border-bottom politica-header">
+        <div class="container d-flex justify-content-between align-items-center politica-header__inner">
             <a href="{% url 'home' %}" class="navbar-brand site-brand">
                 <img src="{% static 'img/logo.png' %}" alt="" class="site-brand__logo">
             </a>
@@ -29,7 +29,7 @@
         </div>
     </header>
     
-    <main class="container py-4">
+    <main class="container px-3 px-sm-4 py-4">
         <div class="row justify-content-center">
             <div class="col-12 col-lg-8">
                 {% block conteudo_politica %}
@@ -45,10 +45,10 @@
         </div>
     </main>
 
-    <footer class="footer-bg pt-5 pb-3">
-        <div class="container">
-            <div class="row g-4 pb-4 border-bottom border-dark border-opacity-25">
-                <div class="col-6 col-md-3">
+    <footer class="footer-bg pt-4 pt-md-5 pb-3">
+        <div class="container px-3 px-sm-4">
+            <div class="row g-3 g-sm-4 pb-4 border-bottom border-dark border-opacity-25">
+                <div class="col-12 col-sm-6 col-md-3">
                     <h4 class="h3 fw-bold mb-3">Institucional</h4>
                     <div class="d-flex flex-column gap-2">
                         <a href="{% url 'politica-privacidade' %}" class="footer-link">Políticas de Privacidade</a>
@@ -57,20 +57,20 @@
                     </div>
                 </div>
 
-                <div class="col-6 col-md-3">
+                <div class="col-12 col-sm-6 col-md-3">
                     <h4 class="h3 fw-bold mb-3">Atendimento</h4>
                     <p class="small mb-1"><strong>Telefone:</strong> (11) 96377-1187</p>
                     <p class="small mb-0"><strong>E-mail:</strong> contato@famapet.com.br</p>
                 </div>
 
-                <div class="col-6 col-md-3">
+                <div class="col-12 col-sm-6 col-md-3">
                     <h4 class="h3 fw-bold mb-3">Segurança</h4>
                     <span class="badge bg-white text-dark p-2 border">
                         <i class="bi bi-shield-check text-success me-1"></i> Google Safe
                     </span>
                 </div>
 
-                <div class="col-6 col-md-3">
+                <div class="col-12 col-sm-6 col-md-3">
                     <h4 class="h3 fw-bold mb-3">Redes Sociais</h4>
                     <div class="d-flex gap-3 fs-5">
                         <a href="#" class="text-dark"><i class="bi bi-facebook"></i></a>
@@ -82,7 +82,7 @@
 
             <div class="text-center pt-3">
                 <p class="small text-muted mb-0" style="font-size: 0.75rem;">
-                    Fama Pet - CNPJ XX.XXX.XXX/0001-XX - Av. Vereador Magalhães, 2116 - Vila Orestes, Santo André - SP - 09220-210<br>
+                    Fama Pet - Av. Vereador Magalhães, 2116 - Vila Orestes, Santo André - SP - 09220-210<br>
                     © {% now "Y" %} Fama Pet. Todos os direitos reservados.
                 </p>
             </div>

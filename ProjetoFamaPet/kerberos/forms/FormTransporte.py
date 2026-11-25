@@ -42,12 +42,19 @@ class SolicitacaoTransporteForm(forms.ModelForm):
     def __init__(self, *args, agendamento, usuario, **kwargs):
         super().__init__(*args, **kwargs)
         self.agendamento = agendamento
+        self.fields["observacoes"].widget.attrs["maxlength"] = "500"
 
         endereco = usuario.endereco
         if endereco and not self.is_bound:
             self.fields["endereco_retirada"].initial = (
                 f"{endereco}, CEP {endereco.cep}"
             )
+
+    def clean_observacoes(self):
+        observacoes = self.cleaned_data.get("observacoes", "").strip()
+        if len(observacoes) > 500:
+            raise forms.ValidationError("As observações podem ter no máximo 500 caracteres.")
+        return observacoes
 
     def clean_horario_preferido(self):
         horario = self.cleaned_data["horario_preferido"]

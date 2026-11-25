@@ -36,10 +36,30 @@ def _faixas_do_dia(data):
 
 def bloquear_configuracao_dia(data):
     excecao = ExcecaoHorario.objects.select_for_update().filter(data=data).first()
-    if excecao is None:
-        HorarioFuncionamento.objects.select_for_update().filter(
-            dia_semana=data.weekday(),
-        ).first()
+    if excecao is not None:
+        list(
+            Agendamento.objects.select_for_update().filter(
+                data__date=data,
+                status__in=(
+                    Agendamento.StatusChoices.PENDENTE,
+                    Agendamento.StatusChoices.CONFIRMADO,
+                ),
+            )
+        )
+        return
+
+    HorarioFuncionamento.objects.select_for_update().filter(
+        dia_semana=data.weekday(),
+    ).first()
+    list(
+        Agendamento.objects.select_for_update().filter(
+            data__date=data,
+            status__in=(
+                Agendamento.StatusChoices.PENDENTE,
+                Agendamento.StatusChoices.CONFIRMADO,
+            ),
+        )
+    )
 
 
 def horarios_disponiveis(

@@ -30,6 +30,16 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: clip;
+}
+
+.politica-header__inner {
+    min-width: 0;
+    gap: 0.75rem;
+}
+
+.politica-header__inner > .d-flex {
+    flex-shrink: 0;
 }
 
 h1,h2,h3,h4 {
@@ -192,10 +202,118 @@ span.texto-laranja {
     }
 
     .conteudo-politica p {
-        text-align: left;
+        text-align: center;
     }
 
     .footer-bg h4 {
         text-align: center;
+    }
+}
+
+@media (max-width: 575.98px) {
+    main.container {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    main.container > .row {
+        --bs-gutter-x: 0;
+        margin-inline: 0;
+    }
+
+    main.container > .row > [class*="col-"] {
+        width: 100%;
+        max-width: 100%;
+        padding-inline: 0;
+    }
+
+    main h1 {
+        font-size: clamp(1.65rem, 8vw, 2rem);
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    main p,
+    main h4 {
+        text-align: center;
+    }
+
+    .politica-header__inner {
+        flex-wrap: nowrap;
+    }
+
+    .politica-header__inner > .d-flex {
+        max-width: calc(100% - 52px);
+        justify-content: flex-end;
+    }
+
+    .politica-header__inner .btn {
+        white-space: nowrap;
+    }
+
+    .footer-bg {
+        text-align: center;
+        overflow-wrap: anywhere;
+    }
+
+    .footer-bg .container {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .footer-bg .row {
+        --bs-gutter-x: 0;
+        margin-inline: 0;
+        row-gap: 1.25rem !important;
+    }
+
+    .footer-bg .row > [class*="col-"] {
+        width: 100%;
+        max-width: 100%;
+        padding-inline: 0;
+        text-align: center;
+    }
+
+    .footer-bg .d-flex {
+        align-items: center;
+        justify-content: center;
+    }
+
+    .footer-bg h4 {
+        font-size: 1.35rem;
+        margin-bottom: 0.75rem;
+        text-align: center;
+    }
+
+    .footer-bg .footer-link,
+    .footer-bg p,
+    .footer-bg .badge {
+        margin-inline: auto;
+    }
+
+    .footer-bg .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .footer-bg p,
+    .footer-bg .footer-link {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+}
+
+@media (max-width: 359.98px) {
+    .politica-header__inner .text-dark {
+        font-size: 0.78rem;
+        padding-inline: 0.25rem !important;
+    }
+
+    .politica-header__inner .btn {
+        font-size: 0.78rem;
+        padding-inline: 0.55rem !important;
     }
 }

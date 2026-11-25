@@ -73,7 +73,7 @@ class ExcecaoHorarioForm(forms.ModelForm):
             "hora_fechamento": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
             "pausa_inicio": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
             "pausa_fim": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
-            "motivo": forms.TextInput(attrs={"class": "form-control"}),
+            "motivo": forms.TextInput(attrs={"class": "form-control", "maxlength": "120"}),
         }
 
     def clean(self):
