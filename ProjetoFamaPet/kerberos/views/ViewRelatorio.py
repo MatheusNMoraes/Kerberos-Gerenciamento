@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
+from django.contrib import messages
 
 from kerberos.models.agendamento import Agendamento, ItemAgendamento
 from kerberos.models.pet import Pet
@@ -24,6 +25,13 @@ def relatorio(request):
         data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d').date() if data_inicio_str else hoje.replace(day=1)
         data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date() if data_fim_str else hoje
     except ValueError:
+        data_inicio = hoje.replace(day=1)
+        data_fim = hoje
+        messages.error(request, 'Informe datas válidas no formato AAAA-MM-DD.')
+
+    periodo_invalido = data_inicio > data_fim
+    if periodo_invalido:
+        messages.error(request, 'A data inicial não pode ser posterior à data final.')
         data_inicio = hoje.replace(day=1)
         data_fim = hoje
 

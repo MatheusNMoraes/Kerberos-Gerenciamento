@@ -3,6 +3,31 @@ from ..models.endereco import Endereco
 
 
 class EnderecoForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for nome_campo, campo in self.fields.items():
+            classes = campo.widget.attrs.get('class', '').split()
+            max_length = getattr(campo, 'max_length', None)
+            if max_length:
+                campo.widget.attrs['maxlength'] = str(max_length)
+            if nome_campo in self.errors:
+                classes.append('is-invalid')
+                campo.widget.attrs['aria-invalid'] = 'true'
+                campo.widget.attrs['aria-describedby'] = f'id_{nome_campo}-error'
+            else:
+                campo.widget.attrs['aria-invalid'] = 'false'
+
+            if nome_campo == 'cep':
+                campo.widget.attrs.update({
+                    'inputmode': 'numeric',
+                    'pattern': '[0-9]{5}-?[0-9]{3}',
+                })
+            elif nome_campo == 'uf':
+                campo.widget.attrs['aria-label'] = 'Estado'
+
+            campo.widget.attrs['class'] = ' '.join(dict.fromkeys(classes))
+
     class Meta:
         model = Endereco
         fields = ['cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf']

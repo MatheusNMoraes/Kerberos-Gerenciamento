@@ -1,15 +1,20 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import AdminPasswordChangeForm
+from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.db.models import Q
 from django.contrib import messages
 
 from ..forms.FormUsuario import UsuarioForm
 from ..forms.FormEndereco import EnderecoForm
 from ..models.usuario import Usuario
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -47,8 +52,12 @@ def criar_cliente(request):
                 messages.success(request, 'Cliente e Endereço cadastrados com sucesso!')
                 return redirect('listar_clientes')
 
-            except Exception as e:
-                messages.error(request, f'Erro inesperado ao salvar no banco de dados: {str(e)}')
+            except (DatabaseError, ValidationError):
+                logger.exception("Erro ao criar cliente")
+                messages.error(
+                    request,
+                    'Não foi possível salvar o cliente. Tente novamente.',
+                )
         else:
             messages.error(request, 'Por favor, corrija os erros apontados no formulário abaixo.')
     else:
@@ -89,8 +98,12 @@ def editar_cliente(request, pk):
                 messages.success(request, f'Dados de {usuario_editado.nome} atualizados com sucesso!')
                 return redirect('listar_clientes')
 
-            except Exception as e:
-                messages.error(request, f'Erro ao atualizar registro: {str(e)}')
+            except (DatabaseError, ValidationError):
+                logger.exception("Erro ao atualizar cliente %s", usuario.pk)
+                messages.error(
+                    request,
+                    'Não foi possível atualizar o cliente. Tente novamente.',
+                )
         else:
             messages.error(request, 'Por favor, corrija os erros apontados no formulário abaixo.')
     else:

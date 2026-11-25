@@ -781,6 +781,37 @@ class RelatorioAtendimentosTests(TestCase):
         self.assertEqual(response.context['total_atendimentos'], 1)
         self.assertEqual(response.context['total_faturamento'], Decimal('30.00'))
 
+    def test_relatorio_rejeita_periodo_com_data_inicial_maior(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(
+            reverse('relatorio'),
+            {
+                'data_inicio': '2026-12-31',
+                'data_fim': '2026-01-01',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'A data inicial não pode ser posterior à data final.',
+        )
+
+    def test_relatorio_rejeita_datas_em_formato_invalido(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(
+            reverse('relatorio'),
+            {
+                'data_inicio': '31/12/2026',
+                'data_fim': 'data-invalida',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Informe datas válidas no formato AAAA-MM-DD.')
+
     def test_cliente_acessa_historico_apenas_dos_proprios_agendamentos(self):
         agora = timezone.now()
         agendamento_cliente = self.criar_agendamento(

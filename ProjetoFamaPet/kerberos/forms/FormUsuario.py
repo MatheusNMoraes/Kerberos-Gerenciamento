@@ -52,6 +52,7 @@ class UsuarioForm(NomeValidationMixin, forms.ModelForm):
             'telefone': forms.TextInput(attrs={
                 'placeholder': '(11) 91234-5678',
                 'autocomplete': 'tel',
+                'inputmode': 'tel',
                 'class': 'form-control',
             }),
         }
@@ -63,6 +64,24 @@ class UsuarioForm(NomeValidationMixin, forms.ModelForm):
         if self.instance.pk:
             self.fields['senha'].required = False
             self.fields['confirmar_senha'].required = False
+
+        for nome_campo, campo in self.fields.items():
+            classes = campo.widget.attrs.get('class', '').split()
+            max_length = getattr(campo, 'max_length', None)
+            if max_length:
+                campo.widget.attrs['maxlength'] = str(max_length)
+            if nome_campo == 'telefone':
+                campo.widget.attrs.update({
+                    'inputmode': 'tel',
+                    'pattern': r'\(?[0-9]{2}\)?[\s-]?[0-9]{4,5}-?[0-9]{4}',
+                })
+            if nome_campo in self.errors:
+                classes.append('is-invalid')
+                campo.widget.attrs['aria-invalid'] = 'true'
+                campo.widget.attrs['aria-describedby'] = f'id_{nome_campo}-error'
+            else:
+                campo.widget.attrs['aria-invalid'] = 'false'
+            campo.widget.attrs['class'] = ' '.join(dict.fromkeys(classes))
 
     def clean_senha(self):
         senha = self.cleaned_data.get('senha')

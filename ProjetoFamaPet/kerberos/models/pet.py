@@ -88,13 +88,3 @@ class Pet(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-
-    @property
-    def idade(self):
-        """Calcula a idade em anos de forma dinâmica."""
-        if not self.data_de_nascimento:
-            return None
-        hoje = timezone.now().date()
-        return hoje.year - self.data_de_nascimento.year - (
-            (hoje.month, hoje.day) < (self.data_de_nascimento.month, self.data_de_nascimento.day)
-        )
