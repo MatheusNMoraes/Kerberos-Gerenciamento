@@ -3,98 +3,176 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/style_agenda.css' %}">
+  <style>
+    .input-group > select,
+    .input-group > input,
+    .input-group > .form-select,
+    .input-group > .form-control {
+      flex: 1 1 auto;
+      width: 1%;
+      min-height: 44px;
+      border: 1px solid var(--cinza-input) !important;
+      border-left: 0 !important;
+      border-top-left-radius: 0 !important;
+      border-bottom-left-radius: 0 !important;
+      border-top-right-radius: 10px !important;
+      border-bottom-right-radius: 10px !important;
+      background-color: #fff !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+
+    .input-group > select,
+    .input-group > .form-select {
+      padding: 10px 36px 10px 12px !important;
+    }
+
+    .input-group > input,
+    .input-group > .form-control {
+      padding: 10px 12px !important;
+    }
+
+    .input-group > select:focus,
+    .input-group > input:focus,
+    .input-group > .form-select:focus,
+    .input-group > .form-control:focus {
+      border-color: var(--cinza-input) !important;
+      box-shadow: none !important;
+    }
+  </style>
 {% endblock %}
 
+{% block title %}{{ titulo_pagina }} — FamaPet{% endblock %}
 {% block titulo %}{{ titulo_pagina }} — FamaPet{% endblock %}
 {% block nav_admin_agendamentos %}active{% endblock %}
 
 {% block content %}
-<div class="container my-4 my-md-5 px-3" style="max-width: 650px;">
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 850px;">
 
-  <div class="card form-card overflow-hidden">
-    <div class="form-card-header d-flex justify-content-between align-items-center">
-      <div class="d-flex align-items-center gap-2">
-        <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-          <i class="bi bi-calendar-event text-dark fs-5"></i>
+        <!-- Cabeçalho -->
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'agendamentos' %}" class="text-decoration-none text-muted small">Agendamentos</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">{{ titulo_pagina }}</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">{{ titulo_pagina }}</h2>
+                <p class="text-muted small mb-0">Preencha os campos abaixo para agendar ou atualizar o atendimento do pet.</p>
+            </div>
+            <a href="{% url 'agendamentos' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i>
+                <span>Voltar à Lista</span>
+            </a>
         </div>
-        <h3 class="h5 fw-bold mb-0 brand-font text-dark">{{ titulo_pagina }}</h3>
-      </div>
-      <a href="{% url 'agendamentos' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
-        <i class="bi bi-arrow-left me-1"></i> Voltar
-      </a>
+
+        <!-- Cartão do Formulário -->
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Seção 1: Dados do Agendamento -->
+                    <div class="mb-4 pb-4 border-bottom">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                                <i class="bi bi-calendar-event text-dark fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0 text-dark brand-font">Dados do Agendamento</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.pet.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Pet</label>
+                                <div class="input-group {% if form.pet.errors %}is-invalid{% endif %}">
+                                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input); min-height: 44px;">
+                                        <i class="bi bi-heart-pulse text-muted"></i>
+                                    </span>
+                                    {{ form.pet }}
+                                </div>
+                                {% if form.pet.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.pet.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.colaborador.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Profissional responsável</label>
+                                <div class="input-group {% if form.colaborador.errors %}is-invalid{% endif %}">
+                                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input); min-height: 44px;">
+                                        <i class="bi bi-person-badge text-muted"></i>
+                                    </span>
+                                    {{ form.colaborador }}
+                                </div>
+                                {% if form.colaborador.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.colaborador.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.data_dia.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Dia</label>
+                                <div class="input-group {% if form.data_dia.errors %}is-invalid{% endif %}">
+                                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input); min-height: 44px;">
+                                        <i class="bi bi-calendar3 text-muted"></i>
+                                    </span>
+                                    {{ form.data_dia }}
+                                </div>
+                                {% if form.data_dia.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.data_dia.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="horario-disponivel" class="form-label fw-bold text-dark small mb-1">Horário disponível</label>
+                                <div class="input-group {% if form.data.errors %}is-invalid{% endif %}">
+                                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input); min-height: 44px;">
+                                        <i class="bi bi-clock text-muted"></i>
+                                    </span>
+                                    <select id="horario-disponivel" class="form-select border-start-0 shadow-none" data-url="{% url 'horarios_disponiveis' %}" disabled style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); min-height: 44px; padding: 10px 36px 10px 12px;">
+                                        <option value="">Selecione o profissional, dia e serviços</option>
+                                    </select>
+                                </div>
+                                {{ form.data }}
+                                {% if form.data.errors %}
+                                    <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.data.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if agendamento %}<input type="hidden" id="agendamento-id" value="{{ agendamento.pk }}">{% endif %}
+
+                    <!-- Seção 2: Serviços Desejados -->
+                    <div class="mb-4 pb-2">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                                <i class="bi bi-scissors text-dark fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0 text-dark brand-font">Serviços Desejados</h5>
+                        </div>
+
+                        <div class="p-3 servicos-container border" style="border-radius: 10px; border-color: var(--cinza-input) !important;">
+                            {{ form.servicos }}
+                        </div>
+                        {% if form.servicos.errors %}
+                            <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.servicos.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Ações -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
+                        <a href="{% url 'agendamentos' %}" class="btn btn-light border fw-semibold px-4 rounded-3 text-secondary" style="transition: all var(--transicao);">Cancelar</a>
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2" style="background-color: var(--amarelo-cta); transition: all var(--transicao);">
+                            <i class="bi {% if agendamento %}bi-check2-square{% else %}bi-plus-circle-fill{% endif %}"></i>
+                            <span>{{ botao_texto|default:"Confirmar Agendamento" }}</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
-
-    <div class="card-body p-4 p-md-5">
-      <form method="POST" novalidate>
-        {% csrf_token %}
-
-        <div class="mb-3.5 mb-md-4">
-          <label for="{{ form.pet.id_for_label }}" class="form-label fw-bold text-dark">
-            <i class="bi bi-heart-pulse text-warning me-1"></i> Pet
-          </label>
-          {{ form.pet }}
-          {% if form.pet.errors %}
-            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.pet.errors.0 }}</div>
-          {% endif %}
-        </div>
-
-        <div class="mb-3.5 mb-md-4">
-          <label for="{{ form.colaborador.id_for_label }}" class="form-label fw-bold text-dark">
-            <i class="bi bi-person-badge me-1 text-warning"></i> Profissional responsável
-          </label>
-          {{ form.colaborador }}
-          {% if form.colaborador.errors %}
-            <div class="text-danger small mt-1">{{ form.colaborador.errors.0 }}</div>
-          {% endif %}
-        </div>
-
-        <div class="mb-3.5 mb-md-4">
-          <label for="{{ form.data_dia.id_for_label }}" class="form-label fw-bold text-dark">
-            <i class="bi bi-calendar3 me-1 text-warning"></i> Dia
-          </label>
-          {{ form.data_dia }}
-          {% if form.data_dia.errors %}
-            <div class="text-danger small mt-1">{{ form.data_dia.errors.0 }}</div>
-          {% endif %}
-        </div>
-
-        <div class="mb-3.5 mb-md-4">
-          <label for="horario-disponivel" class="form-label fw-bold text-dark">
-            <i class="bi bi-clock me-1 text-warning"></i> Horário disponível
-          </label>
-          <select id="horario-disponivel" class="form-select" data-url="{% url 'horarios_disponiveis' %}" disabled>
-            <option value="">Selecione o profissional, dia e serviços</option>
-          </select>
-          {{ form.data }}
-          {% if form.data.errors %}
-            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.data.errors.0 }}</div>
-          {% endif %}
-        </div>
-
-        {% if agendamento %}<input type="hidden" id="agendamento-id" value="{{ agendamento.pk }}">{% endif %}
-
-        <div class="mb-4">
-          <label class="form-label fw-bold text-dark">
-            <i class="bi bi-scissors me-1 text-warning"></i> Serviços Desejados
-          </label>
-          <div class="p-3 servicos-container">
-            {{ form.servicos }}
-          </div>
-          {% if form.servicos.errors %}
-            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.servicos.errors.0 }}</div>
-          {% endif %}
-        </div>
-
-        <div class="d-grid pt-2">
-          <button type="submit" class="btn btn-salvar shadow-sm d-flex align-items-center justify-content-center gap-2 fs-6">
-            <i class="bi {% if agendamento %}bi-check2-square{% else %}bi-plus-circle-fill{% endif %}"></i>
-            {{ botao_texto }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
 </div>
 {% endblock %}
 

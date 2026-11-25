@@ -2,143 +2,225 @@
 {% load static %}
 
 {% block title %}Lista de Clientes — FamaPet{% endblock %}
+{% block titulo %}Lista de Clientes — FamaPet{% endblock %}
 {% block nav_clientes %}active{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column h-100 justify-content-between">
-    <div>
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 960px;">
+
+        <!-- Cabeçalho -->
+        <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-3 mb-4">
             <div>
-                <h2 class="fw-bold mb-1 brand-font text-dark" style="font-size: 2rem;">Lista de Clientes</h2>
-                <p class="text-muted small mb-0">Gerencie os clientes cadastrados no sistema</p>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none text-muted small">Início</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Lista de Clientes</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">Lista de Clientes</h2>
+                <p class="text-muted small mb-0">Gerencie os clientes cadastrados no sistema.</p>
             </div>
 
-            <div>
-                <a href="{% url 'criar_cliente' %}" class="btn btn-warning text-dark fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3.5 py-2 rounded-3 text-nowrap" style="background-color: var(--amarelo-cta); font-size: 0.85rem; transition: all var(--transicao);">
-                    <i class="bi bi-person-plus-fill"></i> Novo usuário
+            <div class="d-grid d-md-block">
+                <a href="{% url 'criar_cliente' %}" class="btn btn-warning text-dark fw-bold px-3 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2 text-nowrap" style="background-color: var(--amarelo-cta); font-size: 0.88rem; transition: all var(--transicao);">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span>Novo usuário</span>
                 </a>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm rounded-3 mb-4 p-3 bg-white" style="border-radius: var(--raio) !important;">
-            <form method="GET" class="row g-2 align-items-center">
-                <div class="col-12 col-sm">
-                  <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
-                        <i class="bi bi-search text-muted" style="font-size: 0.9rem;"></i>
-                    </span>
-                    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control border-start-0 ps-2 shadow-none" placeholder="Procurar usuário por nome ou email..." style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
-                  </div>
-                </div>
-                <div class="col-12 col-sm-auto d-grid">
-                    <button type="submit" class="btn btn-light border fw-semibold px-4 text-nowrap" style="border-radius: 10px;">Buscar</button>
-                </div>
-                {% if request.GET.q %}
-                    <div class="col-12 col-sm-auto d-grid">
-                        <a href="{% url 'listar_clientes' %}" class="btn btn-outline-secondary px-3 text-nowrap" style="border-radius: 10px;" title="Limpar busca">Limpar</a>
+        <!-- Barra de Busca -->
+        <div class="card border-0 shadow-sm mb-4 bg-white" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-3 p-md-4">
+                <form method="GET" class="row g-2 align-items-center">
+                    <div class="col-12 col-sm">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
+                                <i class="bi bi-search text-muted" style="font-size: 0.95rem;"></i>
+                            </span>
+                            <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control border-start-0 ps-2 shadow-none" placeholder="Procurar usuário por nome ou email..." style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
+                        </div>
                     </div>
-                {% endif %}
-            </form>
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 text-nowrap" style="background-color: var(--amarelo-cta); border-radius: 10px; transition: all var(--transicao);">
+                            Buscar
+                        </button>
+                    </div>
+                    {% if request.GET.q %}
+                        <div class="col-12 col-sm-auto d-grid">
+                            <a href="{% url 'listar_clientes' %}" class="btn btn-light border fw-semibold px-3 py-2 text-secondary text-nowrap text-center" style="border-radius: 10px; transition: all var(--transicao);" title="Limpar busca">
+                                Limpar
+                            </a>
+                        </div>
+                    {% endif %}
+                </form>
+            </div>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-borderless align-middle mb-0">
-                <thead>
-                    <tr class="text-muted border-bottom" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <th class="fw-bold ps-3 pb-3 text-secondary">Nome</th>
-                        <th class="fw-bold pb-3 text-secondary">Email</th>
-                        <th class="fw-bold pb-3 text-secondary">Telefone</th>
-                        <th class="fw-bold text-center pb-3 text-secondary">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for usuario in usuarios %}
-                    <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff; transition: background-color 0.15s ease;">
-                        <td class="fw-bold py-3.5 ps-3 text-dark" style="border-radius: var(--raio) 0 0 var(--raio);">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; min-width: 32px; min-height: 32px;">
-                                    <i class="bi bi-person fs-6"></i>
-                                </div>
-                                <span class="text-truncate">{{ usuario.nome }}</span>
-                            </div>
-                        </td>
-                        <td class="py-3.5 text-secondary">{{ usuario.email }}</td>
-                        <td class="py-3.5 text-secondary">{{ usuario.telefone|default:"-" }}</td>
-                        
-                        <td class="text-center py-3.5" style="border-radius: 0 var(--raio) var(--raio) 0;">
-                            <div class="d-flex justify-content-center align-items-center gap-1">
-                                <a href="{% url 'editar_cliente' usuario.pk %}" class="btn btn-sm btn-light border text-secondary rounded-2" title="Editar cliente {{ usuario.nome }}">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
+        <!-- Cartão da Listagem -->
+        <div class="card border-0 shadow-sm overflow-hidden bg-white" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-3 p-sm-4 p-md-5">
 
-                                <a href="{% url 'alterar_senha_cliente' usuario.pk %}" class="btn btn-sm btn-light border text-secondary rounded-2" title="Redefinir senha de {{ usuario.nome }}">
-                                    <i class="bi bi-key"></i>
-                                </a>
+                <div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">
+                    <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                        <i class="bi bi-people text-dark fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0 text-dark brand-font">Clientes Cadastrados</h5>
+                </div>
 
-                                <button type="button" class="btn btn-sm btn-light border text-danger rounded-2" data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.pk }}" title="Excluir cliente {{ usuario.nome }}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-
-                            <div class="modal fade text-start" id="deleteModal{{ usuario.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ usuario.pk }}" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header border-0">
-                                            <h5 class="modal-title fw-bold" id="deleteModalLabel{{ usuario.pk }}">Confirmar Exclusão</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <!-- Visualização em Tabela (Desktop / Tablet) -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-borderless align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted border-bottom" style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <th class="fw-bold ps-3 pb-3 text-secondary">Nome</th>
+                                <th class="fw-bold pb-3 text-secondary">Email</th>
+                                <th class="fw-bold pb-3 text-secondary">Telefone</th>
+                                <th class="fw-bold text-center pb-3 text-secondary">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for usuario in usuarios %}
+                            <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff; transition: background-color 0.15s ease;">
+                                <td class="fw-bold py-3 ps-3 text-dark" style="border-radius: var(--raio) 0 0 var(--raio);">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; min-width: 32px; min-height: 32px;">
+                                            <i class="bi bi-person fs-6"></i>
                                         </div>
-                                        <div class="modal-body py-2 text-muted">
-                                            Tem certeza que deseja remover o cliente <strong>{{ usuario.nome }}</strong>? Esta ação não poderá ser desfeita.
-                                        </div>
-                                        <div class="modal-footer border-0">
-                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                                            <form action="{% url 'deletar_cliente' usuario.pk %}" method="post" class="d-inline">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-danger">Excluir</button>
-                                            </form>
-                                        </div>
+                                        <span class="text-truncate">{{ usuario.nome }}</span>
                                     </div>
+                                </td>
+                                <td class="py-3 text-secondary">{{ usuario.email }}</td>
+                                <td class="py-3 text-secondary">{{ usuario.telefone|default:"-" }}</td>
+                                <td class="text-center py-3" style="border-radius: 0 var(--raio) var(--raio) 0;">
+                                    <div class="d-flex justify-content-center align-items-center gap-1">
+                                        <a href="{% url 'editar_cliente' usuario.pk %}" class="btn btn-sm btn-light border text-secondary rounded-3" title="Editar cliente {{ usuario.nome }}" style="transition: all var(--transicao);">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+
+                                        <a href="{% url 'alterar_senha_cliente' usuario.pk %}" class="btn btn-sm btn-light border text-secondary rounded-3" title="Redefinir senha de {{ usuario.nome }}" style="transition: all var(--transicao);">
+                                            <i class="bi bi-key"></i>
+                                        </a>
+
+                                        <button type="button" class="btn btn-sm btn-light border text-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.pk }}" title="Excluir cliente {{ usuario.nome }}" style="transition: all var(--transicao);">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                        <i class="bi bi-search fs-3 text-muted opacity-75"></i>
+                                    </div>
+                                    <p class="text-muted small mb-0">
+                                        {% if request.GET.q %}
+                                            Nenhum usuário encontrado para a busca "{{ request.GET.q }}".
+                                        {% else %}
+                                            Nenhum usuário cadastrado.
+                                        {% endif %}
+                                    </p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Visualização em Cards (Celular) -->
+                <div class="d-md-none">
+                    {% for usuario in usuarios %}
+                        <div class="py-3 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
+                                        <i class="bi bi-person fs-6"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark text-truncate">{{ usuario.nome }}</span>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                    <a href="{% url 'editar_cliente' usuario.pk %}" class="btn btn-sm btn-light border text-secondary rounded-3" title="Editar cliente {{ usuario.nome }}">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <a href="{% url 'alterar_senha_cliente' usuario.pk %}" class="btn btn-sm btn-light border text-secondary rounded-3" title="Redefinir senha de {{ usuario.nome }}">
+                                        <i class="bi bi-key"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-light border text-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.pk }}" title="Excluir cliente {{ usuario.nome }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </div>
                             </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center py-5">
-                            <div class="text-muted mb-2">
-                                <i class="bi bi-search fs-1 opacity-50"></i>
+
+                            <div class="small text-secondary ps-1">
+                                <div class="mb-1"><strong class="text-dark">Email:</strong> {{ usuario.email }}</div>
+                                <div><strong class="text-dark">Telefone:</strong> {{ usuario.telefone|default:"-" }}</div>
                             </div>
-                            <p class="text-muted mb-0">
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                <i class="bi bi-search fs-3 text-muted opacity-75"></i>
+                            </div>
+                            <p class="text-muted small mb-0">
                                 {% if request.GET.q %}
                                     Nenhum usuário encontrado para a busca "{{ request.GET.q }}".
                                 {% else %}
                                     Nenhum usuário cadastrado.
                                 {% endif %}
                             </p>
-                        </td>
-                    </tr>
+                        </div>
                     {% endfor %}
-                </tbody>
-            </table>
+                </div>
+
+                <!-- Paginação -->
+                {% if page_obj and page_obj.has_other_pages %}
+                <nav class="mt-4 pt-3 border-top">
+                    <ul class="pagination justify-content-center gap-1 flex-wrap mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link rounded-3 text-dark" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; Primeira</a></li>
+                            <li class="page-item"><a class="page-link rounded-3 text-dark" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Anterior</a></li>
+                        {% endif %}
+
+                        <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-muted fw-semibold">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link rounded-3 text-dark" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Próxima</a></li>
+                            <li class="page-item"><a class="page-link rounded-3 text-dark" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Última &raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            </div>
         </div>
 
-        {% if page_obj and page_obj.has_other_pages %}
-        <nav class="mt-4 pt-2">
-            <ul class="pagination justify-content-center gap-1 flex-wrap">
-                {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link rounded-2" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; Primeira</a></li>
-                    <li class="page-item"><a class="page-link rounded-2" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Anterior</a></li>
-                {% endif %}
-
-                <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-muted fw-semibold">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
-
-                {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link rounded-2" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Próxima</a></li>
-                    <li class="page-item"><a class="page-link rounded-2" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Última &raquo;</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
     </div>
 </div>
+
+<!-- Modais de Confirmação de Exclusão -->
+{% for usuario in usuarios %}
+<div class="modal fade text-start" id="deleteModal{{ usuario.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ usuario.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: var(--raio);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold brand-font" id="deleteModalLabel{{ usuario.pk }}">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body py-2 text-muted">
+                Tem certeza que deseja remover o cliente <strong>{{ usuario.nome }}</strong>? Esta ação não poderá ser desfeita.
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light border rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                <form action="{% url 'deletar_cliente' usuario.pk %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger rounded-3">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}
