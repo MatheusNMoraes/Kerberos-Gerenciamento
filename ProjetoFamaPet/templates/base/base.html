@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Fama Pet{% endblock %}</title>
-    
+
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/fontes.css' %}" rel="stylesheet">
@@ -18,121 +18,155 @@
 
 <body class="{% if user.is_authenticated %}{% if user.is_staff %}layout-admin{% else %}layout-cliente{% endif %}{% else %}layout-visitante{% endif %}">
 
-    <div class="d-lg-none bg-warning p-3 d-flex justify-content-between align-items-center shadow-sm sticky-top">
-        <a href="{% url 'home' %}" class="site-brand">
-            <img src="{% static 'img/logo.png' %}" alt="" class="site-brand__logo">
+    <!-- Barra Superior Mobile -->
+    <div class="d-lg-none bg-warning px-3 py-2 d-flex justify-content-between align-items-center shadow-sm sticky-top">
+        <a href="{% url 'home' %}" class="site-brand d-inline-flex align-items-center gap-2 text-decoration-none">
+            <img src="{% static 'img/logo.png' %}" alt="Fama Pet" class="site-brand__logo">
+            <span class="site-brand__name fw-bold text-dark brand-font">Fama Pet</span>
         </a>
-        <button class="btn btn-light shadow-sm d-flex align-items-center justify-content-center p-2 rounded-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile" aria-controls="sidebarMobile">
-            <i class="bi bi-list fs-4"></i>
+        <button class="btn btn-light border-0 shadow-sm d-inline-flex align-items-center justify-content-center p-2 rounded-3"
+                type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile"
+                aria-controls="sidebarMobile" aria-label="Abrir menu" style="transition: all var(--transicao);">
+            <i class="bi bi-list fs-4 text-dark"></i>
         </button>
     </div>
 
-    <div class="offcanvas-lg offcanvas-start sidebar-custom sidebar-desktop p-4 d-flex flex-column vh-100 overflow-y-auto" tabindex="-1" id="sidebarMobile">
+    <!-- Menu Lateral / Offcanvas Mobile -->
+    <aside class="offcanvas-lg offcanvas-start sidebar-custom sidebar-desktop p-4 d-flex flex-column vh-100 overflow-y-auto"
+           tabindex="-1" id="sidebarMobile" aria-label="Menu principal">
 
         <div class="offcanvas-header d-lg-none p-0 mb-3 justify-content-end">
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMobile" aria-label="Fechar"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                    data-bs-target="#sidebarMobile" aria-label="Fechar menu"></button>
         </div>
 
-        <a href="{% url 'home' %}" class="site-brand site-brand--sidebar">
+        <a href="{% url 'home' %}" class="site-brand site-brand--sidebar d-flex align-items-center gap-2 text-decoration-none mb-4">
             <img src="{% static 'img/logo.png' %}" alt="" class="site-brand__logo">
-            <span class="site-brand__name">Fama Pet</span>
+            <span class="site-brand__name brand-font">Fama Pet</span>
         </a>
 
-        <div class="text-center text-white mb-4">
-            <div class="user-avatar mb-2 d-inline-flex align-items-center justify-content-center bg-white bg-opacity-10 rounded-circle p-3" style="width: 70px; height: 70px;">
+        <div class="text-center text-white mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+            <div class="user-avatar mb-2 d-inline-flex align-items-center justify-content-center bg-white bg-opacity-10 rounded-circle"
+                 style="width: 72px; height: 72px;">
                 <i class="bi {% if user.is_staff %}bi-shield-lock-fill{% elif user.is_authenticated %}bi-person-fill{% else %}bi-person-circle{% endif %} fs-1 text-white"></i>
             </div>
-            
-            <h5 class="fw-bold mb-0 text-white text-truncate px-2" title="{{ user.nome|default:user.username }}">
+
+            <h5 class="fw-bold mb-0 text-white text-truncate px-2 brand-font" title="{{ user.nome|default:user.username }}">
                 {{ user.nome|default:user.username }}
             </h5>
         </div>
 
-        <nav class="mt-2 flex-grow-1">
+        <nav class="mt-1 flex-grow-1">
             {% if user.is_authenticated %}
                 {% if user.is_administrador %}
-                    <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">Atendimentos</span>
+                    <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">
+                        Atendimentos
+                    </span>
                     <a href="{% url 'agendamentos' %}" class="nav-btn {% block nav_admin_agendamentos %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-calendar-check me-2 fs-5"></i>Agendamentos
+                        <i class="bi bi-calendar-check me-2 fs-5"></i>
+                        <span>Agendamentos</span>
                     </a>
-                    <a href="{% url 'gerenciar_transportes' %}" class="nav-btn mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-car-front me-2 fs-5"></i>Transportes
+                    <a href="{% url 'gerenciar_transportes' %}" class="nav-btn {% block nav_admin_transportes %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
+                        <i class="bi bi-car-front me-2 fs-5"></i>
+                        <span>Transportes</span>
                     </a>
                     <a href="{% url 'listar_pets' %}" class="nav-btn {% block nav_admin_pets %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-card-list me-2 fs-5"></i>Todos os Pets
+                        <i class="bi bi-card-list me-2 fs-5"></i>
+                        <span>Todos os Pets</span>
                     </a>
 
                     <hr class="border-secondary opacity-50 my-3">
-                    
-                    <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">Gestão</span>
+
+                    <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">
+                        Gestão
+                    </span>
                     <a href="{% url 'listar_servicos' %}" class="nav-btn {% block nav_servicos %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-scissors me-2 fs-5"></i>Serviços
+                        <i class="bi bi-scissors me-2 fs-5"></i>
+                        <span>Serviços</span>
                     </a>
                     <a href="{% url 'listar_clientes' %}" class="nav-btn {% block nav_clientes %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-people me-2 fs-5"></i>Clientes
+                        <i class="bi bi-people me-2 fs-5"></i>
+                        <span>Clientes</span>
                     </a>
                     <a href="{% url 'listar_colaboradores' %}" class="nav-btn {% block nav_colaboradores %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-person-badge me-2 fs-5"></i>Colaboradores
+                        <i class="bi bi-person-badge me-2 fs-5"></i>
+                        <span>Colaboradores</span>
                     </a>
                     <a href="{% url 'gerenciar_disponibilidade' %}" class="nav-btn {% block nav_disponibilidade %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-clock-history me-2 fs-5"></i>Disponibilidade
+                        <i class="bi bi-clock-history me-2 fs-5"></i>
+                        <span>Disponibilidade</span>
                     </a>
                     <a href="{% url 'relatorio' %}" class="nav-btn {% block nav_admin_relatorio %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-bar-chart me-2 fs-5"></i>Relatórios
+                        <i class="bi bi-bar-chart me-2 fs-5"></i>
+                        <span>Relatórios</span>
                     </a>
 
                 {% elif user.is_colaborador %}
-                    <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2">Atendimentos</span>
+                    <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">
+                        Atendimentos
+                    </span>
                     <a href="{% url 'agendamentos' %}" class="nav-btn {% block nav_colaborador_agendamentos %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-calendar-check me-2 fs-5"></i>Agendamentos
+                        <i class="bi bi-calendar-check me-2 fs-5"></i>
+                        <span>Agendamentos</span>
                     </a>
-                    <a href="{% url 'gerenciar_transportes' %}" class="nav-btn mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-car-front me-2 fs-5"></i>Transportes
+                    <a href="{% url 'gerenciar_transportes' %}" class="nav-btn {% block nav_colaborador_transportes %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
+                        <i class="bi bi-car-front me-2 fs-5"></i>
+                        <span>Transportes</span>
                     </a>
                     <a href="{% url 'listar_pets' %}" class="nav-btn {% block nav_colaborador_pets %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-card-list me-2 fs-5"></i>Pets
+                        <i class="bi bi-card-list me-2 fs-5"></i>
+                        <span>Pets</span>
                     </a>
 
                 {% else %}
                     <a href="{% url 'agendamentos' %}" class="nav-btn {% block nav_agendamentos %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-calendar-event me-2 fs-5"></i>Agendamentos
+                        <i class="bi bi-calendar-event me-2 fs-5"></i>
+                        <span>Agendamentos</span>
                     </a>
                     <a href="{% url 'listar_pets' %}" class="nav-btn {% block nav_pets %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-heart-pulse me-2 fs-5"></i>Meus Pets
+                        <i class="bi bi-heart-pulse me-2 fs-5"></i>
+                        <span>Meus Pets</span>
                     </a>
                     <a href="{% url 'relatorio' %}" class="nav-btn {% block nav_historico_agendamentos %}{% endblock %} mb-2 d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                        <i class="bi bi-clock-history me-2 fs-5"></i>Histórico de Agendamentos
+                        <i class="bi bi-clock-history me-2 fs-5"></i>
+                        <span>Histórico</span>
                     </a>
                 {% endif %}
 
                 <hr class="border-secondary opacity-50 my-3">
-                                    <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">Perfil</span>
+
+                <span class="text-white-50 small px-2 fw-bold text-uppercase d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">
+                    Perfil
+                </span>
                 <a href="{% url 'perfil' %}" class="nav-btn {% block nav_perfil %}{% endblock %} d-flex align-items-center rounded-3 px-3 py-2 text-decoration-none">
-                    <i class="bi bi-person-gear me-2 fs-5"></i>Editar Perfil
+                    <i class="bi bi-person-gear me-2 fs-5"></i>
+                    <span>Editar Perfil</span>
                 </a>
             {% endif %}
         </nav>
 
         {% if user.is_authenticated %}
             <div class="logout mx-auto pt-3 mt-auto w-100 text-center border-top border-secondary border-opacity-50">
-                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                <form action="{% url 'logout' %}" method="post" class="d-inline w-100">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-link text-danger p-2 w-100 align-baseline text-decoration-none fw-bold d-inline-flex align-items-center justify-content-center rounded-3" style="transition: all var(--transicao);">
-                        <i class="bi bi-box-arrow-right me-2 fs-5"></i> Sair do Sistema
+                    <button type="submit" class="btn btn-link text-danger p-2 w-100 align-baseline text-decoration-none fw-bold d-inline-flex align-items-center justify-content-center rounded-3"
+                            style="transition: all var(--transicao);">
+                        <i class="bi bi-box-arrow-right me-2 fs-5"></i>
+                        <span>Sair do Sistema</span>
                     </button>
                 </form>
             </div>
         {% endif %}
 
-    </div>
+    </aside>
 
+    <!-- Área Principal -->
     <main class="main-content p-2 p-sm-3 p-md-4 p-xl-5">
-        
-    
         {% if messages %}
             <div class="mb-4">
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm border-0" role="alert" style="border-radius: var(--raio, 12px);">
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm border-0"
+                         role="alert" style="border-radius: var(--raio, 12px);">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
                     </div>
@@ -140,7 +174,8 @@
             </div>
         {% endif %}
 
-        <div class="container-fluid bg-white p-2 p-sm-3 p-md-4 p-xl-5 rounded-4 shadow-sm border" style="min-height: 85vh;">
+        <div class="container-fluid bg-white p-3 p-sm-4 p-md-5 shadow-sm border"
+             style="min-height: 85vh; border-radius: var(--raio, 16px);">
             {% block content %}
             {% endblock %}
         </div>

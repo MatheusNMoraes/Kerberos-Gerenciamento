@@ -2,161 +2,232 @@
 {% load static %}
 
 {% block title %}{% if user.is_staff %}Relatório — FamaPet{% else %}Histórico — FamaPet{% endif %}{% endblock %}
+{% block titulo %}{% if user.is_staff %}Relatório — FamaPet{% else %}Histórico — FamaPet{% endif %}{% endblock %}
 {% block nav_admin_relatorio %}active{% endblock %}
 {% block nav_historico_agendamentos %}active{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column h-100 justify-content-between">
-    <div>
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 960px;">
+
+        <!-- Cabeçalho -->
+        <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-3 mb-4">
             <div>
-                <h2 class="fw-bold mb-1 brand-font text-dark" style="font-size: 2rem;">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none text-muted small">Início</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">
+                            {% if user.is_staff %}Relatório de Agendamentos{% else %}Histórico de Agendamentos{% endif %}
+                        </li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">
                     {% if user.is_staff %}Relatório de Agendamentos{% else %}Histórico de Agendamentos{% endif %}
                 </h2>
-                <p class="text-muted small mb-0">Consulte o histórico detalhado por período</p>
+                <p class="text-muted small mb-0">Consulte o histórico detalhado por período.</p>
                 {% if user.is_staff %}
-                    <p class="text-muted small mb-0">A lista inclui todos os status. O faturamento e o ranking consideram apenas atendimentos concluídos e já realizados.</p>
+                    <p class="text-muted small mb-0 mt-1">A lista inclui todos os status. O faturamento e o ranking consideram apenas atendimentos concluídos e já realizados.</p>
                 {% endif %}
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm rounded-3 mb-4 p-3.5 bg-white" style="border-radius: var(--raio) !important;">
-            <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-3 col-6">
-                    <label class="form-label small fw-bold text-secondary">Data Inicial</label>
-                    <input type="date" name="data_inicio" class="form-control form-control-sm shadow-none" style="border-radius: 8px; border-color: var(--cinza-input); padding: 8px;" value="{{ data_inicio|date:'Y-m-d' }}">
-                </div>
-                <div class="col-md-3 col-6">
-                    <label class="form-label small fw-bold text-secondary">Data Final</label>
-                    <input type="date" name="data_fim" class="form-control form-control-sm shadow-none" style="border-radius: 8px; border-color: var(--cinza-input); padding: 8px;" value="{{ data_fim|date:'Y-m-d' }}">
-                </div>
-                <div class="col-md-4 col-12">
-                    <label class="form-label small fw-bold text-secondary">Filtrar por Pet</label>
-                    <select name="pet_id" class="form-select form-select-sm shadow-none" style="border-radius: 8px; border-color: var(--cinza-input); padding: 8px;">
-                        <option value="">Todos os Pets</option>
-                        {% for pet in pets_filtro %}
-                            <option value="{{ pet.id }}" {% if pet.id == pet_id_selecionado %}selected{% endif %}>
-                                {{ pet.nome }} {% if user.is_staff %}({{ pet.usuario.nome }}){% endif %}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2 col-12 d-grid">
-                    <button type="submit" class="btn btn-warning text-dark btn-sm fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1 py-2" style="background-color: var(--amarelo-cta); border-radius: 8px; transition: all var(--transicao);">
-                        <i class="bi bi-filter"></i> Filtrar
-                    </button>
-                </div>
-            </form>
+        <!-- Filtros -->
+        <div class="card border-0 shadow-sm mb-4 bg-white" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-3 p-md-4">
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-3 col-6">
+                        <label for="id_data_inicio" class="form-label fw-bold text-dark small mb-1">Data Inicial</label>
+                        <input id="id_data_inicio" type="date" name="data_inicio" class="form-control shadow-none" style="border-radius: 10px; border-color: var(--cinza-input); padding: 10px;" value="{{ data_inicio|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label for="id_data_fim" class="form-label fw-bold text-dark small mb-1">Data Final</label>
+                        <input id="id_data_fim" type="date" name="data_fim" class="form-control shadow-none" style="border-radius: 10px; border-color: var(--cinza-input); padding: 10px;" value="{{ data_fim|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label for="id_pet_id" class="form-label fw-bold text-dark small mb-1">Filtrar por Pet</label>
+                        <select id="id_pet_id" name="pet_id" class="form-select shadow-none" style="border-radius: 10px; border-color: var(--cinza-input); padding: 10px;">
+                            <option value="">Todos os Pets</option>
+                            {% for pet in pets_filtro %}
+                                <option value="{{ pet.id }}" {% if pet.id == pet_id_selecionado %}selected{% endif %}>
+                                    {{ pet.nome }} {% if user.is_staff %}({{ pet.usuario.nome }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-12 d-grid">
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-3 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2 text-nowrap" style="background-color: var(--amarelo-cta); min-height: 44px; transition: all var(--transicao);">
+                            <i class="bi bi-filter"></i>
+                            <span>Filtrar</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         {% if user.is_staff %}
+        <!-- Métricas (Equipe) -->
         <div class="row g-3 mb-4">
             <div class="col-md-4 col-12">
-                <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white" style="border-radius: var(--raio) !important; border-left: 4px solid var(--amarelo-cta) !important;">
+                <div class="card border-0 shadow-sm p-3 p-md-4 text-center bg-white h-100" style="border-radius: var(--raio) !important; border-left: 4px solid var(--amarelo-cta) !important;">
                     <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Total Faturado (concluídos)</span>
-                    <h3 class="fw-bold text-success mb-0 mt-1">R$ {{ total_faturamento|floatformat:2 }}</h3>
+                    <h3 class="fw-bold text-success mb-0 mt-2 brand-font">R$ {{ total_faturamento|floatformat:2 }}</h3>
                 </div>
             </div>
             <div class="col-md-4 col-6">
-                <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white" style="border-radius: var(--raio) !important; border-left: 4px solid #0dcaf0 !important;">
+                <div class="card border-0 shadow-sm p-3 p-md-4 text-center bg-white h-100" style="border-radius: var(--raio) !important; border-left: 4px solid #0dcaf0 !important;">
                     <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Atendimentos Concluídos</span>
-                    <h3 class="fw-bold text-dark mb-0 mt-1">{{ total_atendimentos }}</h3>
+                    <h3 class="fw-bold text-dark mb-0 mt-2 brand-font">{{ total_atendimentos }}</h3>
                 </div>
             </div>
             <div class="col-md-4 col-6">
-                <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white" style="border-radius: var(--raio) !important; border-left: 4px solid #6c757d !important;">
+                <div class="card border-0 shadow-sm p-3 p-md-4 text-center bg-white h-100" style="border-radius: var(--raio) !important; border-left: 4px solid #6c757d !important;">
                     <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Ticket Médio</span>
-                    <h3 class="fw-bold text-dark mb-0 mt-1">R$ {{ ticket_medio|floatformat:2 }}</h3>
+                    <h3 class="fw-bold text-dark mb-0 mt-2 brand-font">R$ {{ ticket_medio|floatformat:2 }}</h3>
                 </div>
             </div>
         </div>
 
+        <!-- Ranking de Serviços -->
         {% if ranking_servicos %}
-            <div class="card border-0 shadow-sm rounded-3 mb-4 bg-white" style="border-radius: var(--raio) !important;">
-                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
-                    <h5 class="fw-bold mb-0 text-dark h6"><i class="bi bi-trophy text-warning me-2"></i>Serviços Mais Realizados no Período</h5>
+            <div class="card border-0 shadow-sm overflow-hidden mb-4 bg-white" style="border-radius: var(--raio) !important;">
+                <div class="card-body p-3 p-sm-4 p-md-5">
+                    <div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">
+                        <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                            <i class="bi bi-trophy text-dark fs-5"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0 text-dark brand-font">Serviços Mais Realizados no Período</h5>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-0 small">
+                            <thead>
+                                <tr class="text-muted border-bottom" style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    <th class="ps-3 pb-3 text-secondary fw-bold">Serviço</th>
+                                    <th class="text-center pb-3 text-secondary fw-bold">Quantidade</th>
+                                    <th class="text-end pe-3 pb-3 text-secondary fw-bold">Total Gerado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in ranking_servicos %}
+                                <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff;">
+                                    <td class="fw-bold text-dark ps-3 py-3" style="border-radius: var(--raio) 0 0 var(--raio);">{{ item.servico_nome }}</td>
+                                    <td class="text-center py-3"><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-15 px-2 py-1">{{ item.qtd }}</span></td>
+                                    <td class="text-end text-success fw-bold pe-3 py-3" style="border-radius: 0 var(--raio) var(--raio) 0;">R$ {{ item.total_gerado|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-borderless align-middle mb-0 small">
+            </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Detalhamento dos Agendamentos -->
+        <div class="card border-0 shadow-sm overflow-hidden bg-white" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-3 p-sm-4 p-md-5">
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4 pb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                            <i class="bi bi-clock-history text-dark fs-5"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0 text-dark brand-font">Detalhamento dos Agendamentos</h5>
+                    </div>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-15 px-3 py-2">{{ agendamentos|length }} registros</span>
+                </div>
+
+                <!-- Visualização em Tabela (Desktop / Tablet) -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-borderless align-middle mb-0">
                         <thead>
-                            <tr class="text-muted border-bottom" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <th class="ps-3 text-secondary fw-bold">Serviço</th>
-                                <th class="text-center text-secondary fw-bold">Quantidade</th>
-                                <th class="text-end pe-3 text-secondary fw-bold">Total Gerado</th>
+                            <tr class="text-muted border-bottom" style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <th class="fw-bold ps-3 pb-3 text-secondary">Data / Horário</th>
+                                <th class="fw-bold pb-3 text-secondary">Pet</th>
+                                {% if user.is_staff %}<th class="fw-bold pb-3 text-secondary">Tutor</th>{% endif %}
+                                <th class="fw-bold pb-3 text-secondary">Serviços</th>
+                                <th class="fw-bold pb-3 text-secondary">Status</th>
+                                <th class="fw-bold text-end pb-3 text-secondary pe-3">Valor Total</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in ranking_servicos %}
-                            <tr style="background-color: var(--linha-tabela); border-bottom: 4px solid #fff;">
-                                <td class="fw-bold text-dark ps-3 py-3" style="border-radius: var(--raio) 0 0 var(--raio);">{{ item.servico_nome }}</td>
-                                <td class="text-center py-3"><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-15 px-2 py-1">{{ item.qtd }}</span></td>
-                                <td class="text-end text-success fw-bold pe-3 py-3" style="border-radius: 0 var(--raio) var(--raio) 0;">R$ {{ item.total_gerado|floatformat:2 }}</td>
+                            {% for a in agendamentos %}
+                            <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff; transition: background-color 0.15s ease;">
+                                <td class="py-3 ps-3" style="border-radius: var(--raio) 0 0 var(--raio);">
+                                    <span class="d-block fw-bold text-dark">{{ a.data|date:"d/m/Y" }}</span>
+                                    <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ a.data|date:"H:i" }}</small>
+                                </td>
+                                <td class="py-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; min-width: 32px; min-height: 32px;">
+                                            <i class="bi bi-heart-pulse fs-6"></i>
+                                        </div>
+                                        <span class="fw-bold text-dark">{{ a.pet.nome }}</span>
+                                    </div>
+                                </td>
+                                {% if user.is_staff %}
+                                    <td class="py-3 text-secondary fw-medium">{{ a.usuario.nome|default:a.usuario }}</td>
+                                {% endif %}
+                                <td class="py-3 text-secondary small">
+                                    {{ a.lista_servicos|default:"Nenhum serviço" }}
+                                </td>
+                                <td class="py-3 text-secondary small">{{ a.get_status_display }}</td>
+                                <td class="text-end fw-bold text-success py-3 pe-3" style="border-radius: 0 var(--raio) var(--raio) 0;">
+                                    R$ {{ a.valor_total|floatformat:2 }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{% if user.is_staff %}6{% else %}5{% endif %}" class="text-center py-5">
+                                    <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                        <i class="bi bi-search fs-3 text-muted opacity-75"></i>
+                                    </div>
+                                    <p class="text-muted small mb-0">Nenhum registro encontrado para o período selecionado.</p>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-            </div>
-        {% endif %}
-        {% endif %}
 
-        <div class="card border-0 shadow-sm rounded-3 bg-white" style="border-radius: var(--raio) !important;">
-            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <h5 class="fw-bold mb-0 text-dark h6"><i class="bi bi-clock-history me-2"></i>Detalhamento dos Agendamentos</h5>
-                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-15 px-2 py-1">{{ agendamentos|length }} registros</span>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-borderless align-middle mb-0">
-                    <thead>
-                        <tr class="text-muted border-bottom" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <th class="fw-bold ps-3 pb-3 text-secondary">Data / Horário</th>
-                            <th class="fw-bold pb-3 text-secondary">Pet</th>
-                            {% if user.is_staff %}<th class="fw-bold pb-3 text-secondary">Tutor</th>{% endif %}
-                            <th class="fw-bold pb-3 text-secondary">Serviços</th>
-                            <th class="fw-bold pb-3 text-secondary">Status</th>
-                            <th class="fw-bold text-end pb-3 text-secondary pe-3">Valor Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for a in agendamentos %}
-                        <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff; transition: background-color 0.15s ease;">
-                            <td class="py-3.5 ps-3" style="border-radius: var(--raio) 0 0 var(--raio);">
-                                <span class="d-block fw-bold text-dark">{{ a.data|date:"d/m/Y" }}</span>
-                                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ a.data|date:"H:i" }}</small>
-                            </td>
-                            <td class="py-3.5">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; min-width: 32px; min-height: 32px;">
+                <!-- Visualização em Cards (Celular) -->
+                <div class="d-md-none">
+                    {% for a in agendamentos %}
+                        <div class="py-3 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
                                         <i class="bi bi-heart-pulse fs-6"></i>
                                     </div>
-                                    <span class="fw-bold text-dark">{{ a.pet.nome }}</span>
+                                    <span class="fw-bold text-dark text-truncate">{{ a.pet.nome }}</span>
                                 </div>
-                            </td>
-                            {% if user.is_staff %}
-                                <td class="py-3.5 text-secondary fw-medium">{{ a.usuario.nome|default:a.usuario }}</td>
-                            {% endif %}
-                            <td class="py-3.5 text-secondary small">
-                                {{ a.lista_servicos|default:"Nenhum serviço" }}
-                            </td>
-                            <td class="py-3.5 text-secondary small">{{ a.get_status_display }}</td>
-                            <td class="text-end fw-bold text-success py-3.5 pe-3" style="border-radius: 0 var(--raio) var(--raio) 0;">
-                                R$ {{ a.valor_total|floatformat:2 }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="{% if user.is_staff %}6{% else %}5{% endif %}" class="text-center py-5">
-                                <div class="text-muted mb-2">
-                                    <i class="bi bi-search fs-1 opacity-50"></i>
+                                <span class="fw-bold text-success flex-shrink-0">R$ {{ a.valor_total|floatformat:2 }}</span>
+                            </div>
+
+                            <div class="small text-secondary ps-1">
+                                <div class="mb-1">
+                                    <strong class="text-dark">Data / Horário:</strong> {{ a.data|date:"d/m/Y" }} às {{ a.data|date:"H:i" }}
                                 </div>
-                                <p class="text-muted mb-0">Nenhum registro encontrado para o período selecionado.</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                {% if user.is_staff %}
+                                    <div class="mb-1"><strong class="text-dark">Tutor:</strong> {{ a.usuario.nome|default:a.usuario }}</div>
+                                {% endif %}
+                                <div class="mb-1"><strong class="text-dark">Serviços:</strong> {{ a.lista_servicos|default:"Nenhum serviço" }}</div>
+                                <div><strong class="text-dark">Status:</strong> {{ a.get_status_display }}</div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                <i class="bi bi-search fs-3 text-muted opacity-75"></i>
+                            </div>
+                            <p class="text-muted small mb-0">Nenhum registro encontrado para o período selecionado.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
             </div>
         </div>
+
     </div>
 </div>
 {% endblock %}
