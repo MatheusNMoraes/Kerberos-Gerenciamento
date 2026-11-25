@@ -12,6 +12,7 @@ from kerberos.forms.FormAgendamento import AgendamentoForm
 from kerberos.forms.FormAdminUsuario import AdminUsuarioCreationForm
 from kerberos.forms.FormColaborador import ColaboradorForm
 from kerberos.forms.FormPet import PetForm
+from kerberos.forms.FormServico import ServicoForm
 from kerberos.forms.FormUsuario import UsuarioForm
 from kerberos.models.agendamento import Agendamento, ItemAgendamento
 from kerberos.models.endereco import Endereco
@@ -112,6 +113,38 @@ class PetAuthorizationTests(TestCase):
             response,
             'data-confirm-message="Tem certeza que deseja remover este pet?"',
         )
+
+    def test_pet_limita_caracteres_do_nome_raca_e_observacoes(self):
+        form = PetForm(
+            data={
+                'nome': 'A',
+                'data_de_nascimento': '2022-07-10',
+                'raca': 'X',
+                'porte': 'Pequeno',
+                'observacao': 'x' * 501,
+            },
+            user=self.cliente_a,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('nome', form.errors)
+        self.assertIn('raca', form.errors)
+        self.assertIn('observacao', form.errors)
+
+    def test_servico_limita_duracao_e_descricao(self):
+        form = ServicoForm(
+            data={
+                'nome': 'Banho',
+                'descricao': 'x' * 501,
+                'valor': '50.00',
+                'duracao_minutos': '1441',
+                'ativo': 'on',
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('descricao', form.errors)
+        self.assertIn('duracao_minutos', form.errors)
 
 
 class UsuarioFormPasswordTests(TestCase):

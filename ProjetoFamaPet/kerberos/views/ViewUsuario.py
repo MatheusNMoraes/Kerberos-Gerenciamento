@@ -135,6 +135,8 @@ def alterar_senha_cliente(request, pk):
         field.widget.attrs.update({
             'class': 'form-control',
             'autocomplete': 'new-password',
+            'minlength': '8',
+            'maxlength': '128',
         })
 
     if request.method == 'POST' and form.is_valid():

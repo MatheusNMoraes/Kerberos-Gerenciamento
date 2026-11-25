@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 from ..models import Usuario
 from .mixins import NomeValidationMixin
 
@@ -15,18 +16,24 @@ class UsuarioForm(NomeValidationMixin, forms.ModelForm):
 
     senha = forms.CharField(
         label="Senha",
+        validators=[MinLengthValidator(8), MaxLengthValidator(128)],
         widget=forms.PasswordInput(attrs={
             "placeholder": "Crie uma senha segura",
             "autocomplete": "new-password",
             "class": "form-control",
+            "minlength": "8",
+            "maxlength": "128",
         }),
     )
     confirmar_senha = forms.CharField(
         label="Confirme a Senha",
+        validators=[MinLengthValidator(8), MaxLengthValidator(128)],
         widget=forms.PasswordInput(attrs={
             "placeholder": "Repita a senha",
             "autocomplete": "new-password",
             "class": "form-control",
+            "minlength": "8",
+            "maxlength": "128",
         }),
     )
 
