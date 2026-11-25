@@ -1,66 +1,160 @@
 {% extends 'base/base.html' %}
 
 {% block title %}Colaboradores — FamaPet{% endblock %}
+{% block titulo %}Colaboradores — FamaPet{% endblock %}
 {% block nav_colaboradores %}active{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-    <div>
-        <h2 class="fw-bold mb-1 brand-font text-dark">Colaboradores</h2>
-        <p class="text-muted small mb-0">Gerencie quem pode acessar a agenda da equipe.</p>
-    </div>
-    <a href="{% url 'criar_colaborador' %}" class="btn btn-warning text-dark fw-bold d-inline-flex align-items-center gap-2">
-        <i class="bi bi-person-plus" aria-hidden="true"></i>
-        Novo colaborador
-    </a>
-</div>
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 960px;">
 
-<div class="table-responsive">
-    <table class="table table-borderless align-middle">
-        <thead>
-            <tr class="text-muted border-bottom small text-uppercase">
-                <th scope="col">Nome</th>
-                <th scope="col">E-mail</th>
-                <th scope="col">Telefone</th>
-                <th scope="col">Acesso</th>
-                <th scope="col" class="text-end">Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for colaborador in colaboradores %}
-            <tr class="border-bottom">
-                <td class="fw-semibold">{{ colaborador.nome }}</td>
-                <td>{{ colaborador.email }}</td>
-                <td>{{ colaborador.telefone|default:"-" }}</td>
-                <td>
-                    {% if colaborador.is_active %}
-                    <span class="badge text-bg-success">Ativo</span>
-                    {% else %}
-                    <span class="badge text-bg-secondary">Inativo</span>
-                    {% endif %}
-                </td>
-                <td class="text-end">
-                    <div class="d-inline-flex align-items-center gap-1">
-                        <a href="{% url 'editar_colaborador' colaborador.pk %}" class="btn btn-sm btn-light border" title="Editar {{ colaborador.nome }}" aria-label="Editar {{ colaborador.nome }}">
-                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                        </a>
-                        {% if colaborador != user %}
-                        <form method="post" action="{% url 'alternar_status_colaborador' colaborador.pk %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-light border {% if colaborador.is_active %}text-danger{% else %}text-success{% endif %}" title="{% if colaborador.is_active %}Desativar{% else %}Ativar{% endif %} {{ colaborador.nome }}">
-                                <i class="bi {% if colaborador.is_active %}bi-person-x{% else %}bi-person-check{% endif %}" aria-hidden="true"></i>
-                            </button>
-                        </form>
-                        {% endif %}
+        <!-- Cabeçalho -->
+        <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none text-muted small">Início</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Colaboradores</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">Colaboradores</h2>
+                <p class="text-muted small mb-0">Gerencie quem pode acessar a agenda da equipe.</p>
+            </div>
+
+            <div class="d-grid d-md-block">
+                <a href="{% url 'criar_colaborador' %}" class="btn btn-warning text-dark fw-bold px-3 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2 text-nowrap" style="background-color: var(--amarelo-cta); font-size: 0.88rem; transition: all var(--transicao);">
+                    <i class="bi bi-person-plus" aria-hidden="true"></i>
+                    <span>Novo colaborador</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Cartão da Listagem -->
+        <div class="card border-0 shadow-sm overflow-hidden bg-white" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-3 p-sm-4 p-md-5">
+
+                <div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">
+                    <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                        <i class="bi bi-people text-dark fs-5" aria-hidden="true"></i>
                     </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="text-center text-muted py-5">Nenhum colaborador cadastrado.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    <h5 class="fw-bold mb-0 text-dark brand-font">Equipe Cadastrada</h5>
+                </div>
+
+                <!-- Visualização em Tabela (Desktop / Tablet) -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-borderless align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted border-bottom small text-uppercase" style="letter-spacing: 0.5px;">
+                                <th scope="col" class="fw-bold ps-3 pb-3 text-secondary">Nome</th>
+                                <th scope="col" class="fw-bold pb-3 text-secondary">E-mail</th>
+                                <th scope="col" class="fw-bold pb-3 text-secondary">Telefone</th>
+                                <th scope="col" class="fw-bold pb-3 text-secondary">Acesso</th>
+                                <th scope="col" class="fw-bold text-end pb-3 text-secondary">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for colaborador in colaboradores %}
+                            <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff; transition: background-color 0.15s ease;">
+                                <td class="fw-semibold py-3 ps-3 text-dark" style="border-radius: var(--raio) 0 0 var(--raio);">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-person fs-6" aria-hidden="true"></i>
+                                        </div>
+                                        <span>{{ colaborador.nome }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 text-secondary">{{ colaborador.email }}</td>
+                                <td class="py-3 text-secondary">{{ colaborador.telefone|default:"-" }}</td>
+                                <td class="py-3">
+                                    {% if colaborador.is_active %}
+                                    <span class="badge text-bg-success px-2 py-1">Ativo</span>
+                                    {% else %}
+                                    <span class="badge text-bg-secondary px-2 py-1">Inativo</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end py-3" style="border-radius: 0 var(--raio) var(--raio) 0;">
+                                    <div class="d-inline-flex align-items-center gap-1">
+                                        <a href="{% url 'editar_colaborador' colaborador.pk %}" class="btn btn-sm btn-light border text-secondary rounded-3" title="Editar {{ colaborador.nome }}" aria-label="Editar {{ colaborador.nome }}" style="transition: all var(--transicao);">
+                                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                                        </a>
+                                        {% if colaborador != user %}
+                                        <form method="post" action="{% url 'alternar_status_colaborador' colaborador.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-light border rounded-3 {% if colaborador.is_active %}text-danger{% else %}text-success{% endif %}" title="{% if colaborador.is_active %}Desativar{% else %}Ativar{% endif %} {{ colaborador.nome }}" aria-label="{% if colaborador.is_active %}Desativar{% else %}Ativar{% endif %} {{ colaborador.nome }}" style="transition: all var(--transicao);">
+                                                <i class="bi {% if colaborador.is_active %}bi-person-x{% else %}bi-person-check{% endif %}" aria-hidden="true"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                        <i class="bi bi-people fs-3 text-muted opacity-75" aria-hidden="true"></i>
+                                    </div>
+                                    <p class="text-muted small mb-0">Nenhum colaborador cadastrado.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Visualização em Cards (Celular) -->
+                <div class="d-md-none">
+                    {% for colaborador in colaboradores %}
+                        <div class="py-3 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
+                                        <i class="bi bi-person fs-6" aria-hidden="true"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark text-truncate">{{ colaborador.nome }}</span>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                    <a href="{% url 'editar_colaborador' colaborador.pk %}" class="btn btn-sm btn-light border text-secondary rounded-3" title="Editar {{ colaborador.nome }}" aria-label="Editar {{ colaborador.nome }}">
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                                    </a>
+                                    {% if colaborador != user %}
+                                    <form method="post" action="{% url 'alternar_status_colaborador' colaborador.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-light border rounded-3 {% if colaborador.is_active %}text-danger{% else %}text-success{% endif %}" title="{% if colaborador.is_active %}Desativar{% else %}Ativar{% endif %} {{ colaborador.nome }}" aria-label="{% if colaborador.is_active %}Desativar{% else %}Ativar{% endif %} {{ colaborador.nome }}">
+                                            <i class="bi {% if colaborador.is_active %}bi-person-x{% else %}bi-person-check{% endif %}" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="small text-secondary ps-1">
+                                <div class="mb-1"><strong class="text-dark">E-mail:</strong> {{ colaborador.email }}</div>
+                                <div class="mb-1"><strong class="text-dark">Telefone:</strong> {{ colaborador.telefone|default:"-" }}</div>
+                                <div>
+                                    <strong class="text-dark">Acesso:</strong>
+                                    {% if colaborador.is_active %}
+                                    <span class="badge text-bg-success ms-1">Ativo</span>
+                                    {% else %}
+                                    <span class="badge text-bg-secondary ms-1">Inativo</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                <i class="bi bi-people fs-3 text-muted opacity-75" aria-hidden="true"></i>
+                            </div>
+                            <p class="text-muted small mb-0">Nenhum colaborador cadastrado.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+
+    </div>
 </div>
 {% endblock %}

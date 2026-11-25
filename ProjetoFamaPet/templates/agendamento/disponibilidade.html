@@ -1,129 +1,239 @@
 {% extends 'base/base.html' %}
 
 {% block title %}Disponibilidade — FamaPet{% endblock %}
+{% block titulo %}Disponibilidade — FamaPet{% endblock %}
 {% block nav_disponibilidade %}active{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <h2 class="fw-bold mb-1 brand-font text-dark">Disponibilidade</h2>
-    <p class="text-muted small mb-0">Defina o expediente semanal e exceções para datas específicas.</p>
-</div>
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 850px;">
 
-<section class="mb-5">
-    <h3 class="h5 fw-bold mb-3">Horário semanal</h3>
-    <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="acao" value="salvar_semana">
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Dia</th>
-                        <th>Fechado</th>
-                        <th>Abertura</th>
-                        <th>Fechamento</th>
-                        <th>Início da pausa</th>
-                        <th>Fim da pausa</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for linha in linhas_horarios %}
-                    <tr>
-                        <th scope="row" class="text-nowrap">{{ linha.nome }}</th>
-                        <td><div class="form-check">{{ linha.form.fechado }}</div></td>
-                        <td>{{ linha.form.hora_abertura }}</td>
-                        <td>{{ linha.form.hora_fechamento }}</td>
-                        <td>{{ linha.form.pausa_inicio }}</td>
-                        <td>{{ linha.form.pausa_fim }}</td>
-                    </tr>
-                    {% for field in linha.form %}
-                        {% for error in field.errors %}
-                        <tr><td colspan="6" class="text-danger small">{{ linha.nome }}: {{ error }}</td></tr>
-                        {% endfor %}
-                    {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'agendamentos' %}" class="text-decoration-none text-muted small">Agenda</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Disponibilidade</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">Disponibilidade</h2>
+                <p class="text-muted small mb-0">Defina o expediente semanal e exceções para datas específicas.</p>
+            </div>
         </div>
-        <button type="submit" class="btn btn-warning fw-bold">Salvar horário semanal</button>
-    </form>
-</section>
 
-<section class="mb-5">
-    <h3 class="h5 fw-bold mb-3">Exceção de data</h3>
-    <p class="text-muted small">Uma exceção substitui o horário semanal daquela data. Marque “Fechado” para bloquear o dia inteiro.</p>
-    <form method="post" class="card border-0 shadow-sm">
-        {% csrf_token %}
-        <input type="hidden" name="acao" value="criar_excecao">
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label for="{{ excecao_form.data.id_for_label }}" class="form-label">Data</label>
-                    {{ excecao_form.data }}
-                </div>
-                <div class="col-md-2 d-flex align-items-end pb-2">
-                    <div class="form-check form-switch">
-                        {{ excecao_form.fechado }}
-                        <label for="{{ excecao_form.fechado.id_for_label }}" class="form-check-label">Fechado</label>
+        <!-- Seção 1: Horário semanal -->
+        <div class="card border-0 shadow-sm overflow-hidden mb-4" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-4 p-md-5 bg-white">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-calendar-week text-dark fs-5"></i>
                     </div>
+                    <h5 class="fw-bold mb-0 text-dark brand-font">Horário semanal</h5>
                 </div>
-                <div class="col-md-2">
-                    <label for="{{ excecao_form.hora_abertura.id_for_label }}" class="form-label">Abertura</label>
-                    {{ excecao_form.hora_abertura }}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="salvar_semana">
+
+                    <div class="table-responsive mb-4">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Dia</th>
+                                    <th>Fechado</th>
+                                    <th>Abertura</th>
+                                    <th>Fechamento</th>
+                                    <th>Início da pausa</th>
+                                    <th>Fim da pausa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for linha in linhas_horarios %}
+                                <tr>
+                                    <th scope="row" class="text-nowrap">{{ linha.nome }}</th>
+                                    <td><div class="form-check">{{ linha.form.fechado }}</div></td>
+                                    <td>{{ linha.form.hora_abertura }}</td>
+                                    <td>{{ linha.form.hora_fechamento }}</td>
+                                    <td>{{ linha.form.pausa_inicio }}</td>
+                                    <td>{{ linha.form.pausa_fim }}</td>
+                                </tr>
+                                {% for field in linha.form %}
+                                    {% for error in field.errors %}
+                                    <tr><td colspan="6" class="text-danger small">{{ linha.nome }}: {{ error }}</td></tr>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2" style="background-color: var(--amarelo-cta); transition: all var(--transicao);">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Salvar horário semanal</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Seção 2: Exceção de data -->
+        <div class="card border-0 shadow-sm overflow-hidden mb-4" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-4 p-md-5 bg-white">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-calendar-x text-dark fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0 text-dark brand-font">Exceção de data</h5>
                 </div>
-                <div class="col-md-2">
-                    <label for="{{ excecao_form.hora_fechamento.id_for_label }}" class="form-label">Fechamento</label>
-                    {{ excecao_form.hora_fechamento }}
+                <p class="text-muted small mb-4">Uma exceção substitui o horário semanal daquela data. Marque “Fechado” para bloquear o dia inteiro.</p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="criar_excecao">
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="{{ excecao_form.data.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Data</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
+                                    <i class="bi bi-calendar3 text-muted"></i>
+                                </span>
+                                <div class="form-control border-start-0 shadow-none p-0 d-flex align-items-center {% if excecao_form.data.errors %}is-invalid{% endif %}" style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); min-height: 44px;">
+                                    {{ excecao_form.data }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="{{ excecao_form.hora_abertura.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Abertura</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
+                                    <i class="bi bi-clock text-muted"></i>
+                                </span>
+                                <div class="form-control border-start-0 shadow-none p-0 d-flex align-items-center {% if excecao_form.hora_abertura.errors %}is-invalid{% endif %}" style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); min-height: 44px;">
+                                    {{ excecao_form.hora_abertura }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="{{ excecao_form.hora_fechamento.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Fechamento</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
+                                    <i class="bi bi-clock-history text-muted"></i>
+                                </span>
+                                <div class="form-control border-start-0 shadow-none p-0 d-flex align-items-center {% if excecao_form.hora_fechamento.errors %}is-invalid{% endif %}" style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); min-height: 44px;">
+                                    {{ excecao_form.hora_fechamento }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ excecao_form.pausa_inicio.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Início da pausa</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
+                                    <i class="bi bi-cup-hot text-muted"></i>
+                                </span>
+                                <div class="form-control border-start-0 shadow-none p-0 d-flex align-items-center {% if excecao_form.pausa_inicio.errors %}is-invalid{% endif %}" style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); min-height: 44px;">
+                                    {{ excecao_form.pausa_inicio }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ excecao_form.pausa_fim.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Fim da pausa</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
+                                    <i class="bi bi-cup-hot text-muted"></i>
+                                </span>
+                                <div class="form-control border-start-0 shadow-none p-0 d-flex align-items-center {% if excecao_form.pausa_fim.errors %}is-invalid{% endif %}" style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); min-height: 44px;">
+                                    {{ excecao_form.pausa_fim }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label for="{{ excecao_form.motivo.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Motivo</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
+                                    <i class="bi bi-chat-left-text text-muted"></i>
+                                </span>
+                                <div class="form-control border-start-0 shadow-none p-0 d-flex align-items-center {% if excecao_form.motivo.errors %}is-invalid{% endif %}" style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); min-height: 44px;">
+                                    {{ excecao_form.motivo }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 d-flex align-items-center justify-content-between gap-2 ps-4 pe-3 border w-100" style="border-color: var(--cinza-input) !important; border-radius: 10px !important; min-height: 44px;">
+                                <label for="{{ excecao_form.fechado.id_for_label }}" class="form-check-label fw-bold text-dark small m-0">Fechado</label>
+                                {{ excecao_form.fechado }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if excecao_form.errors %}
+                        <div class="invalid-feedback d-block mt-3 small"><i class="bi bi-exclamation-circle me-1"></i>{{ excecao_form.errors }}</div>
+                    {% endif %}
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 mt-4 border-top">
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2" style="background-color: var(--amarelo-cta); transition: all var(--transicao);">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Cadastrar exceção</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Seção 3: Datas especiais cadastradas -->
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-4 p-md-5 bg-white">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-calendar-check text-dark fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0 text-dark brand-font">Datas especiais cadastradas</h5>
                 </div>
-                <div class="col-md-3">
-                    <label for="{{ excecao_form.motivo.id_for_label }}" class="form-label">Motivo</label>
-                    {{ excecao_form.motivo }}
-                </div>
-                <div class="col-md-3">
-                    <label for="{{ excecao_form.pausa_inicio.id_for_label }}" class="form-label">Início da pausa</label>
-                    {{ excecao_form.pausa_inicio }}
-                </div>
-                <div class="col-md-3">
-                    <label for="{{ excecao_form.pausa_fim.id_for_label }}" class="form-label">Fim da pausa</label>
-                    {{ excecao_form.pausa_fim }}
+
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Expediente</th>
+                                <th>Motivo</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for excecao in excecoes %}
+                            <tr>
+                                <td>{{ excecao.data|date:"d/m/Y" }}</td>
+                                <td>{% if excecao.fechado %}Fechado{% else %}{{ excecao.hora_abertura|time:"H:i" }}–{{ excecao.hora_fechamento|time:"H:i" }}{% endif %}</td>
+                                <td>{{ excecao.motivo|default:"-" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'editar_excecao_horario' excecao.pk %}" class="btn btn-sm btn-light border" aria-label="Editar exceção de {{ excecao.data|date:'d/m/Y' }}" title="Editar">
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                                    </a>
+                                    <form method="post" action="{% url 'deletar_excecao_horario' excecao.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-light border text-danger" aria-label="Remover exceção de {{ excecao.data|date:'d/m/Y' }}" title="Remover">
+                                            <i class="bi bi-trash" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-4">Nenhuma exceção cadastrada.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            {% if excecao_form.errors %}<div class="text-danger small mt-3">{{ excecao_form.errors }}</div>{% endif %}
         </div>
-        <div class="card-footer bg-white text-end">
-            <button type="submit" class="btn btn-warning fw-bold">Cadastrar exceção</button>
-        </div>
-    </form>
-</section>
 
-<section>
-    <h3 class="h5 fw-bold mb-3">Datas especiais cadastradas</h3>
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead><tr><th>Data</th><th>Expediente</th><th>Motivo</th><th class="text-end">Ações</th></tr></thead>
-            <tbody>
-                {% for excecao in excecoes %}
-                <tr>
-                    <td>{{ excecao.data|date:"d/m/Y" }}</td>
-                    <td>{% if excecao.fechado %}Fechado{% else %}{{ excecao.hora_abertura|time:"H:i" }}–{{ excecao.hora_fechamento|time:"H:i" }}{% endif %}</td>
-                    <td>{{ excecao.motivo|default:"-" }}</td>
-                    <td class="text-end">
-                        <a href="{% url 'editar_excecao_horario' excecao.pk %}" class="btn btn-sm btn-light border" aria-label="Editar exceção de {{ excecao.data|date:'d/m/Y' }}" title="Editar">
-                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                        </a>
-                        <form method="post" action="{% url 'deletar_excecao_horario' excecao.pk %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-light border text-danger" aria-label="Remover exceção de {{ excecao.data|date:'d/m/Y' }}" title="Remover">
-                                <i class="bi bi-trash" aria-hidden="true"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="4" class="text-center text-muted py-4">Nenhuma exceção cadastrada.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
-</section>
+</div>
 {% endblock %}

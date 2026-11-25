@@ -2,134 +2,221 @@
 {% load static %}
 
 {% block title %}Lista de Pets — FamaPet{% endblock %}
+{% block titulo %}Lista de Pets — FamaPet{% endblock %}
 {% block nav_pets %}active{% endblock %}
 {% block nav_admin_pets %}active{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column h-100 justify-content-between">
-    <div>
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 960px;">
+
+        <!-- Cabeçalho -->
+        <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-3 mb-4">
             <div>
-                <h2 class="fw-bold mb-1 brand-font text-dark" style="font-size: 2rem;">Lista de Pets</h2>
-                <p class="text-muted small mb-0">Gerencie os pets cadastrados no sistema</p>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none text-muted small">Início</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Lista de Pets</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">Lista de Pets</h2>
+                <p class="text-muted small mb-0">Gerencie os pets cadastrados no sistema.</p>
             </div>
 
             {% if not request.user.is_colaborador %}
-            <div>
-                <a href="{% url 'criar_pet' %}" class="btn btn-warning text-dark fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm px-3.5 py-2 rounded-3 text-nowrap" style="background-color: var(--amarelo-cta); font-size: 0.85rem; transition: all var(--transicao);">
-                    <i class="bi bi-plus-lg"></i> Novo Pet
+            <div class="d-grid d-md-block">
+                <a href="{% url 'criar_pet' %}" class="btn btn-warning text-dark fw-bold px-3 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2 text-nowrap" style="background-color: var(--amarelo-cta); font-size: 0.88rem; transition: all var(--transicao);">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>Novo Pet</span>
                 </a>
             </div>
             {% endif %}
         </div>
 
-        <div class="card border-0 shadow-sm rounded-3 mb-4 p-3 bg-white" style="border-radius: var(--raio) !important;">
-            <form method="GET" class="row g-2 align-items-center">
-                <div class="col-12 col-sm">
-                  <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
-                        <i class="bi bi-search text-muted" style="font-size: 0.9rem;"></i>
-                    </span>
-                    <input type="text" name="q" value="{{ query|default:'' }}" class="form-control border-start-0 ps-2 shadow-none" placeholder="Procurar pet por nome ou raça..." style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
-                  </div>
-                </div>
-                <div class="col-12 col-sm-auto d-grid">
-                    <button type="submit" class="btn btn-light border fw-semibold px-4 text-nowrap" style="border-radius: 10px;">Buscar</button>
-                </div>
-                {% if query %}
-                    <div class="col-12 col-sm-auto d-grid">
-                        <a href="{% url 'listar_pets' %}" class="btn btn-outline-secondary px-3 text-nowrap" style="border-radius: 10px;" title="Limpar busca">Limpar</a>
-                    </div>
-                {% endif %}
-            </form>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-borderless align-middle mb-0">
-                <thead>
-                    <tr class="text-muted border-bottom" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <th class="fw-bold ps-3 pb-3 text-secondary">Nome do Pet</th>
-                        {% if request.user.is_staff %}
-                            <th class="fw-bold pb-3 text-secondary">Tutor</th>
-                        {% endif %}
-                        <th class="fw-bold pb-3 text-secondary">Raça</th>
-                        <th class="fw-bold pb-3 text-secondary">Porte</th>
-                        <th class="fw-bold pb-3 text-secondary">Nascimento</th>
-                        {% if not request.user.is_colaborador %}<th class="fw-bold text-center pb-3 text-secondary">Ações</th>{% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pet in pets %}
-                    <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff; transition: background-color 0.15s ease;">
-                        <td class="fw-bold py-3.5 ps-3 text-dark" style="border-radius: var(--raio) 0 0 var(--raio);">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                    <i class="bi bi-heart-pulse fs-6"></i>
-                                </div>
-                                {{ pet.nome }}
-                            </div>
-                        </td>
-                        
-                        {% if request.user.is_staff %}
-                            <td class="py-3.5 text-secondary fw-medium">{{ pet.usuario.nome|default:pet.usuario }}</td>
-                        {% endif %}
-
-                        <td class="py-3.5 text-secondary">{{ pet.raca|default:"Não informada" }}</td>
-                        <td class="py-3.5">
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-15 px-2 py-1 fw-semibold">
-                                {{ pet.get_porte_display|default:pet.porte }}
+        <!-- Barra de Busca -->
+        <div class="card border-0 shadow-sm mb-4 bg-white" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-3 p-md-4">
+                <form method="GET" class="row g-2 align-items-center">
+                    <div class="col-12 col-sm">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
+                                <i class="bi bi-search text-muted" style="font-size: 0.95rem;"></i>
                             </span>
-                        </td>
-                        <td class="py-3.5 text-secondary">{{ pet.data_de_nascimento|date:"d/m/Y"|default:"-" }}</td>
-                        
-                        {% if not request.user.is_colaborador %}
-                        <td class="text-center py-3.5" style="border-radius: 0 var(--raio) var(--raio) 0;">
-                            <div class="d-flex justify-content-center align-items-center gap-1">
-                                <a href="{% url 'editar_pet' pet.pk %}" class="btn btn-sm btn-light border text-secondary rounded-2" title="Editar">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-
-                                <form action="{% url 'deletar_pet' pet.id %}" method="POST" class="d-inline" data-confirm-message="Tem certeza que deseja remover este pet?">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-light border text-danger rounded-2" title="Excluir">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                        {% endif %}
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="{% if request.user.is_staff and not request.user.is_colaborador %}6{% else %}5{% endif %}" class="text-center py-5">
-                            <div class="text-muted mb-2">
-                                <i class="bi bi-search fs-1 opacity-50"></i>
-                            </div>
-                            <p class="text-muted mb-0">Nenhum pet encontrado.</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control border-start-0 ps-2 shadow-none" placeholder="Procurar pet por nome ou raça..." style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-auto d-grid">
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 text-nowrap" style="background-color: var(--amarelo-cta); border-radius: 10px; transition: all var(--transicao);">
+                            Buscar
+                        </button>
+                    </div>
+                    {% if query %}
+                        <div class="col-12 col-sm-auto d-grid">
+                            <a href="{% url 'listar_pets' %}" class="btn btn-light border fw-semibold px-3 py-2 text-secondary text-nowrap text-center" style="border-radius: 10px; transition: all var(--transicao);" title="Limpar busca">
+                                Limpar
+                            </a>
+                        </div>
+                    {% endif %}
+                </form>
+            </div>
         </div>
 
-        {% if page_obj.has_other_pages %}
-        <nav class="mt-4 pt-2">
-            <ul class="pagination justify-content-center gap-1 flex-wrap">
-                {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link rounded-2" href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; Primeira</a></li>
-                    <li class="page-item"><a class="page-link rounded-2" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a></li>
+        <!-- Cartão da Listagem -->
+        <div class="card border-0 shadow-sm overflow-hidden bg-white" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-3 p-sm-4 p-md-5">
+
+                <div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">
+                    <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                        <i class="bi bi-heart-pulse text-dark fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0 text-dark brand-font">Pets Cadastrados</h5>
+                </div>
+
+                <!-- Visualização em Tabela (Desktop / Tablet) -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-borderless align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted border-bottom" style="font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <th class="fw-bold ps-3 pb-3 text-secondary">Nome do Pet</th>
+                                {% if request.user.is_staff %}
+                                    <th class="fw-bold pb-3 text-secondary">Tutor</th>
+                                {% endif %}
+                                <th class="fw-bold pb-3 text-secondary">Raça</th>
+                                <th class="fw-bold pb-3 text-secondary">Porte</th>
+                                <th class="fw-bold pb-3 text-secondary">Nascimento</th>
+                                {% if not request.user.is_colaborador %}
+                                    <th class="fw-bold text-center pb-3 text-secondary">Ações</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pet in pets %}
+                            <tr style="background-color: var(--linha-tabela); border-bottom: 6px solid #fff; transition: background-color 0.15s ease;">
+                                <td class="fw-bold py-3 ps-3 text-dark" style="border-radius: var(--raio) 0 0 var(--raio);">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-heart-pulse fs-6"></i>
+                                        </div>
+                                        <span>{{ pet.nome }}</span>
+                                    </div>
+                                </td>
+
+                                {% if request.user.is_staff %}
+                                    <td class="py-3 text-secondary fw-medium">{{ pet.usuario.nome|default:pet.usuario }}</td>
+                                {% endif %}
+
+                                <td class="py-3 text-secondary">{{ pet.raca|default:"Não informada" }}</td>
+                                <td class="py-3">
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-15 px-2 py-1 fw-semibold">
+                                        {{ pet.get_porte_display|default:pet.porte }}
+                                    </span>
+                                </td>
+                                <td class="py-3 text-secondary">{{ pet.data_de_nascimento|date:"d/m/Y"|default:"-" }}</td>
+
+                                {% if not request.user.is_colaborador %}
+                                <td class="text-center py-3" style="border-radius: 0 var(--raio) var(--raio) 0;">
+                                    <div class="d-flex justify-content-center align-items-center gap-1">
+                                        <a href="{% url 'editar_pet' pet.pk %}" class="btn btn-sm btn-light border text-secondary rounded-3" title="Editar" style="transition: all var(--transicao);">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+
+                                        <form action="{% url 'deletar_pet' pet.id %}" method="POST" class="d-inline" data-confirm-message="Tem certeza que deseja remover este pet?">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-light border text-danger rounded-3" title="Excluir" style="transition: all var(--transicao);">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{% if request.user.is_staff and not request.user.is_colaborador %}6{% else %}5{% endif %}" class="text-center py-5">
+                                    <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                        <i class="bi bi-search fs-3 text-muted opacity-75"></i>
+                                    </div>
+                                    <p class="text-muted small mb-0">Nenhum pet encontrado.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Visualização em Cards (Celular) -->
+                <div class="d-md-none">
+                    {% for pet in pets %}
+                        <div class="py-3 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <div class="bg-warning bg-opacity-20 text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
+                                        <i class="bi bi-heart-pulse fs-6"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark text-truncate">{{ pet.nome }}</span>
+                                </div>
+
+                                {% if not request.user.is_colaborador %}
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                    <a href="{% url 'editar_pet' pet.pk %}" class="btn btn-sm btn-light border text-secondary rounded-3" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <form action="{% url 'deletar_pet' pet.id %}" method="POST" class="d-inline" data-confirm-message="Tem certeza que deseja remover este pet?">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-light border text-danger rounded-3" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="small text-secondary ps-1">
+                                {% if request.user.is_staff %}
+                                    <div class="mb-1"><strong class="text-dark">Tutor:</strong> {{ pet.usuario.nome|default:pet.usuario }}</div>
+                                {% endif %}
+                                <div class="mb-1"><strong class="text-dark">Raça:</strong> {{ pet.raca|default:"Não informada" }}</div>
+                                <div class="mb-1">
+                                    <strong class="text-dark">Porte:</strong>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-15 px-2 py-1 fw-semibold">
+                                        {{ pet.get_porte_display|default:pet.porte }}
+                                    </span>
+                                </div>
+                                <div><strong class="text-dark">Nascimento:</strong> {{ pet.data_de_nascimento|date:"d/m/Y"|default:"-" }}</div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                <i class="bi bi-search fs-3 text-muted opacity-75"></i>
+                            </div>
+                            <p class="text-muted small mb-0">Nenhum pet encontrado.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Paginação -->
+                {% if page_obj.has_other_pages %}
+                <nav class="mt-4 pt-3 border-top">
+                    <ul class="pagination justify-content-center gap-1 flex-wrap mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link rounded-3 text-dark" href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; Primeira</a></li>
+                            <li class="page-item"><a class="page-link rounded-3 text-dark" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a></li>
+                        {% endif %}
+
+                        <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-muted fw-semibold">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link rounded-3 text-dark" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Próxima</a></li>
+                            <li class="page-item"><a class="page-link rounded-3 text-dark" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">Última &raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
                 {% endif %}
 
-                <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-muted fw-semibold">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+            </div>
+        </div>
 
-                {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link rounded-2" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Próxima</a></li>
-                    <li class="page-item"><a class="page-link rounded-2" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">Última &raquo;</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
