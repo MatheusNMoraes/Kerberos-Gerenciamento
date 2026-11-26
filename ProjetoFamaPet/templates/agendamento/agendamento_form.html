@@ -3,54 +3,15 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/style_agenda.css' %}">
-  <style>
-    .input-group > select,
-    .input-group > input,
-    .input-group > .form-select,
-    .input-group > .form-control {
-      flex: 1 1 auto;
-      width: 1%;
-      min-height: 44px;
-      border: 1px solid var(--cinza-input) !important;
-      border-left: 0 !important;
-      border-top-left-radius: 0 !important;
-      border-bottom-left-radius: 0 !important;
-      border-top-right-radius: 10px !important;
-      border-bottom-right-radius: 10px !important;
-      background-color: #fff !important;
-      box-shadow: none !important;
-      outline: none !important;
-    }
-
-    .input-group > select,
-    .input-group > .form-select {
-      padding: 10px 36px 10px 12px !important;
-    }
-
-    .input-group > input,
-    .input-group > .form-control {
-      padding: 10px 12px !important;
-    }
-
-    .input-group > select:focus,
-    .input-group > input:focus,
-    .input-group > .form-select:focus,
-    .input-group > .form-control:focus {
-      border-color: var(--cinza-input) !important;
-      box-shadow: none !important;
-    }
-  </style>
 {% endblock %}
 
 {% block title %}{{ titulo_pagina }} — FamaPet{% endblock %}
-{% block titulo %}{{ titulo_pagina }} — FamaPet{% endblock %}
 {% block nav_admin_agendamentos %}active{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-2 px-md-3 py-2">
     <div class="content-wrapper mx-auto" style="max-width: 850px;">
 
-        <!-- Cabeçalho -->
         <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
             <div>
                 <nav aria-label="breadcrumb">
@@ -68,13 +29,18 @@
             </a>
         </div>
 
-        <!-- Cartão do Formulário -->
         <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: var(--raio) !important;">
             <div class="card-body p-4 p-md-5 bg-white">
-                <form method="POST" novalidate>
+                <form method="POST" class="agenda-form" novalidate>
                     {% csrf_token %}
 
-                    <!-- Seção 1: Dados do Agendamento -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4 small" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <div>{{ form.non_field_errors.0 }}</div>
+                        </div>
+                    {% endif %}
+
                     <div class="mb-4 pb-4 border-bottom">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
@@ -84,25 +50,35 @@
                         </div>
 
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="{{ form.pet.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Pet</label>
-                                <div class="input-group {% if form.pet.errors %}is-invalid{% endif %}">
-                                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input); min-height: 44px;">
-                                        <i class="bi bi-heart-pulse text-muted"></i>
-                                    </span>
-                                    {{ form.pet }}
+                            <div class="col-12 col-md-6 min-w-0">
+                                <label for="{{ form.pet.id_for_label }}" class="form-label fw-bold text-dark small mb-1 d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-heart-pulse text-muted"></i>
+                                    <span>Pet</span>
+                                </label>
+                                <div class="input-group">
+                                    <select name="{{ form.pet.html_name }}"
+                                            id="{{ form.pet.id_for_label }}"
+                                            class="form-select shadow-none {% if form.pet.errors %}is-invalid{% endif %}"
+                                            {% if form.pet.field.required %}required{% endif %}>
+                                        <option value="">---------</option>
+                                        {% for obj in form.pet.field.queryset %}
+                                            <option value="{{ obj.pk }}" {% if form.pet.value|stringformat:"s" == obj.pk|stringformat:"s" %}selected{% endif %}>
+                                                {% if user.is_staff %}{{ obj.nome }} (Tutor: {{ obj.usuario.nome }}){% else %}{{ obj }}{% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
                                 {% if form.pet.errors %}
                                     <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.pet.errors.0 }}</div>
                                 {% endif %}
                             </div>
 
-                            <div class="col-md-6">
-                                <label for="{{ form.colaborador.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Profissional responsável</label>
-                                <div class="input-group {% if form.colaborador.errors %}is-invalid{% endif %}">
-                                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input); min-height: 44px;">
-                                        <i class="bi bi-person-badge text-muted"></i>
-                                    </span>
+                            <div class="col-12 col-md-6 min-w-0">
+                                <label for="{{ form.colaborador.id_for_label }}" class="form-label fw-bold text-dark small mb-1 d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-person-badge text-muted"></i>
+                                    <span>Profissional responsável</span>
+                                </label>
+                                <div class="input-group">
                                     {{ form.colaborador }}
                                 </div>
                                 {% if form.colaborador.errors %}
@@ -110,12 +86,12 @@
                                 {% endif %}
                             </div>
 
-                            <div class="col-md-6">
-                                <label for="{{ form.data_dia.id_for_label }}" class="form-label fw-bold text-dark small mb-1">Dia</label>
-                                <div class="input-group {% if form.data_dia.errors %}is-invalid{% endif %}">
-                                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input); min-height: 44px;">
-                                        <i class="bi bi-calendar3 text-muted"></i>
-                                    </span>
+                            <div class="col-12 col-md-6 min-w-0">
+                                <label for="{{ form.data_dia.id_for_label }}" class="form-label fw-bold text-dark small mb-1 d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-calendar3 text-muted"></i>
+                                    <span>Dia</span>
+                                </label>
+                                <div class="input-group">
                                     {{ form.data_dia }}
                                 </div>
                                 {% if form.data_dia.errors %}
@@ -123,13 +99,17 @@
                                 {% endif %}
                             </div>
 
-                            <div class="col-md-6">
-                                <label for="horario-disponivel" class="form-label fw-bold text-dark small mb-1">Horário disponível</label>
-                                <div class="input-group {% if form.data.errors %}is-invalid{% endif %}">
-                                    <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input); min-height: 44px;">
-                                        <i class="bi bi-clock text-muted"></i>
-                                    </span>
-                                    <select id="horario-disponivel" class="form-select border-start-0 shadow-none" data-url="{% url 'horarios_disponiveis' %}" disabled style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); min-height: 44px; padding: 10px 36px 10px 12px;">
+                            <div class="col-12 col-md-6 min-w-0">
+                                <label for="horario-disponivel" class="form-label fw-bold text-dark small mb-1 d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-clock text-muted"></i>
+                                    <span>Horário disponível</span>
+                                </label>
+                                <div class="input-group">
+                                    <select id="horario-disponivel"
+                                            class="form-select shadow-none {% if form.data.errors %}is-invalid{% endif %}"
+                                            data-url="{% url 'horarios_disponiveis' %}"
+                                            disabled
+                                            title="Selecione o profissional, dia e serviços">
                                         <option value="">Selecione o profissional, dia e serviços</option>
                                     </select>
                                 </div>
@@ -143,7 +123,6 @@
 
                     {% if agendamento %}<input type="hidden" id="agendamento-id" value="{{ agendamento.pk }}">{% endif %}
 
-                    <!-- Seção 2: Serviços Desejados -->
                     <div class="mb-4 pb-2">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
@@ -152,7 +131,7 @@
                             <h5 class="fw-bold mb-0 text-dark brand-font">Serviços Desejados</h5>
                         </div>
 
-                        <div class="p-3 servicos-container border" style="border-radius: 10px; border-color: var(--cinza-input) !important;">
+                        <div class="p-3 servicos-container border {% if form.servicos.errors %}border-danger{% endif %}" style="border-radius: 10px; border-color: var(--cinza-input) !important;">
                             {{ form.servicos }}
                         </div>
                         {% if form.servicos.errors %}
@@ -160,7 +139,6 @@
                         {% endif %}
                     </div>
 
-                    <!-- Ações -->
                     <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
                         <a href="{% url 'agendamentos' %}" class="btn btn-light border fw-semibold px-4 rounded-3 text-secondary" style="transition: all var(--transicao);">Cancelar</a>
                         <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2" style="background-color: var(--amarelo-cta); transition: all var(--transicao);">
