@@ -38,6 +38,16 @@ class PetForm(NomeValidationMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
 
+        limites_texto = {
+            "nome": 100,
+            "raca": 50,
+            "observacao": 500,
+        }
+        for nome_campo, limite in limites_texto.items():
+            campo = self.fields.get(nome_campo)
+            if campo:
+                campo.widget.attrs["maxlength"] = str(limite)
+
         if 'data_de_nascimento' in self.fields:
             hoje = timezone.now().date()
             self.fields['data_de_nascimento'].widget.attrs['max'] = hoje.isoformat()
@@ -58,6 +68,18 @@ class PetForm(NomeValidationMixin, forms.ModelForm):
                 self.fields['usuario'].label_from_instance = lambda obj: f"{obj.nome} ({obj.email})"
         else:
             self.fields.pop('usuario', None)
+
+    def clean_raca(self):
+        raca = self.cleaned_data.get("raca", "").strip()
+        if len(raca) < 2:
+            raise forms.ValidationError("Informe uma raça com pelo menos 2 caracteres.")
+        return raca
+
+    def clean_observacao(self):
+        observacao = self.cleaned_data.get("observacao", "").strip()
+        if len(observacao) > 500:
+            raise forms.ValidationError("As observações podem ter no máximo 500 caracteres.")
+        return observacao
 
     def save(self, commit=True):
         instance = super().save(commit=False)

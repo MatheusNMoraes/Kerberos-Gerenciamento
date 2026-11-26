@@ -46,7 +46,7 @@
                                     <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
                                         <i class="bi bi-tag text-muted"></i>
                                     </span>
-                                    <input type="text" name="{{ form.nome.html_name }}" id="{{ form.nome.id_for_label }}" value="{{ form.nome.value|default:'' }}" class="form-control border-start-0 shadow-none {% if form.nome.errors %}is-invalid{% endif %}" placeholder="Ex: Banho e Tosa" required style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
+                                    <input type="text" name="{{ form.nome.html_name }}" id="{{ form.nome.id_for_label }}" value="{{ form.nome.value|default:'' }}" maxlength="100" minlength="3" class="form-control border-start-0 shadow-none {% if form.nome.errors %}is-invalid{% endif %}" placeholder="Ex: Banho e Tosa" required style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
                                 </div>
                                 {% if form.nome.errors %}
                                     <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.nome.errors|join:", " }}</div>
@@ -59,7 +59,7 @@
                                     <span class="input-group-text bg-white border-end-0 ps-3 align-items-start pt-2" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
                                         <i class="bi bi-card-text text-muted"></i>
                                     </span>
-                                    <textarea name="{{ form.descricao.html_name }}" id="{{ form.descricao.id_for_label }}" rows="3" class="form-control border-start-0 shadow-none {% if form.descricao.errors %}is-invalid{% endif %}" placeholder="Descreva os detalhes do serviço..." style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">{{ form.descricao.value|default:'' }}</textarea>
+                                    <textarea name="{{ form.descricao.html_name }}" id="{{ form.descricao.id_for_label }}" rows="3" maxlength="500" class="form-control border-start-0 shadow-none {% if form.descricao.errors %}is-invalid{% endif %}" placeholder="Descreva os detalhes do serviço..." style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">{{ form.descricao.value|default:'' }}</textarea>
                                 </div>
                                 {% if form.descricao.errors %}
                                     <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.descricao.errors|join:", " }}</div>
@@ -83,7 +83,7 @@
                                     <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
                                         <i class="bi bi-cash-stack text-muted"></i>
                                     </span>
-                                    <input type="number" step="0.01" min="0" name="{{ form.valor.html_name }}" id="{{ form.valor.id_for_label }}" value="{{ form.valor.value|default:'' }}" class="form-control border-start-0 shadow-none {% if form.valor.errors %}is-invalid{% endif %}" placeholder="0,00" required style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
+                                    <input type="number" step="0.01" min="0.01" max="99999999.99" name="{{ form.valor.html_name }}" id="{{ form.valor.id_for_label }}" value="{{ form.valor.value|default:'' }}" class="form-control border-start-0 shadow-none {% if form.valor.errors %}is-invalid{% endif %}" placeholder="0,00" required style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
                                 </div>
                                 {% if form.valor.errors %}
                                     <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.valor.errors|join:", " }}</div>
@@ -96,7 +96,7 @@
                                     <span class="input-group-text bg-white border-end-0 ps-3" style="border-radius: 10px 0 0 10px; border-color: var(--cinza-input);">
                                         <i class="bi bi-clock text-muted"></i>
                                     </span>
-                                    <input type="number" min="1" name="{{ form.duracao_minutos.html_name }}" id="{{ form.duracao_minutos.id_for_label }}" value="{{ form.duracao_minutos.value|default:'' }}" class="form-control border-start-0 shadow-none {% if form.duracao_minutos.errors %}is-invalid{% endif %}" placeholder="Ex: 60" required style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
+                                    <input type="number" min="5" max="1440" step="5" name="{{ form.duracao_minutos.html_name }}" id="{{ form.duracao_minutos.id_for_label }}" value="{{ form.duracao_minutos.value|default:'' }}" class="form-control border-start-0 shadow-none {% if form.duracao_minutos.errors %}is-invalid{% endif %}" placeholder="Ex: 60" required style="border-radius: 0 10px 10px 0; border-color: var(--cinza-input); padding: 10px;">
                                 </div>
                                 {% if form.duracao_minutos.errors %}
                                     <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.duracao_minutos.errors|join:", " }}</div>

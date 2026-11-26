@@ -12,6 +12,7 @@ from kerberos.forms.FormAgendamento import AgendamentoForm
 from kerberos.forms.FormAdminUsuario import AdminUsuarioCreationForm
 from kerberos.forms.FormColaborador import ColaboradorForm
 from kerberos.forms.FormPet import PetForm
+from kerberos.forms.FormServico import ServicoForm
 from kerberos.forms.FormUsuario import UsuarioForm
 from kerberos.models.agendamento import Agendamento, ItemAgendamento
 from kerberos.models.endereco import Endereco
@@ -112,6 +113,38 @@ class PetAuthorizationTests(TestCase):
             response,
             'data-confirm-message="Tem certeza que deseja remover este pet?"',
         )
+
+    def test_pet_limita_caracteres_do_nome_raca_e_observacoes(self):
+        form = PetForm(
+            data={
+                'nome': 'A',
+                'data_de_nascimento': '2022-07-10',
+                'raca': 'X',
+                'porte': 'Pequeno',
+                'observacao': 'x' * 501,
+            },
+            user=self.cliente_a,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('nome', form.errors)
+        self.assertIn('raca', form.errors)
+        self.assertIn('observacao', form.errors)
+
+    def test_servico_limita_duracao_e_descricao(self):
+        form = ServicoForm(
+            data={
+                'nome': 'Banho',
+                'descricao': 'x' * 501,
+                'valor': '50.00',
+                'duracao_minutos': '1441',
+                'ativo': 'on',
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('descricao', form.errors)
+        self.assertIn('duracao_minutos', form.errors)
 
 
 class UsuarioFormPasswordTests(TestCase):
@@ -234,6 +267,23 @@ class UsuarioLoginTests(TestCase):
 
         self.assertContains(response, 'type="email"')
         self.assertContains(response, 'E-mail')
+
+    def test_login_invalido_exibe_mensagem_apenas_uma_vez(self):
+        response = self.client.post(
+            reverse('login'),
+            {
+                'username': 'inexistente@example.com',
+                'password': 'Senha-incorreta',
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(
+            response,
+            'Credenciais inválidas. Restam 4 tentativas antes do bloqueio.',
+            count=1,
+            status_code=400,
+        )
 
     @override_settings(CSRF_TRUSTED_ORIGINS=['https://localhost:8001'])
     def test_login_aceita_post_com_origem_https_confiavel(self):
@@ -780,6 +830,37 @@ class RelatorioAtendimentosTests(TestCase):
         )
         self.assertEqual(response.context['total_atendimentos'], 1)
         self.assertEqual(response.context['total_faturamento'], Decimal('30.00'))
+
+    def test_relatorio_rejeita_periodo_com_data_inicial_maior(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(
+            reverse('relatorio'),
+            {
+                'data_inicio': '2026-12-31',
+                'data_fim': '2026-01-01',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'A data inicial não pode ser posterior à data final.',
+        )
+
+    def test_relatorio_rejeita_datas_em_formato_invalido(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(
+            reverse('relatorio'),
+            {
+                'data_inicio': '31/12/2026',
+                'data_fim': 'data-invalida',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Informe datas válidas no formato AAAA-MM-DD.')
 
     def test_cliente_acessa_historico_apenas_dos_proprios_agendamentos(self):
         agora = timezone.now()
