@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from django import forms
-from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
@@ -25,10 +24,6 @@ class login(LoginView):
                 remaining = max(0, int(float(lock_until) - timezone.now().timestamp()))
                 context = self.get_context_data()
                 context['custom_error'] = (
-                    f'Muitas tentativas de login. Tente novamente em {remaining} segundos.'
-                )
-                messages.error(
-                    request,
                     f'Muitas tentativas de login. Tente novamente em {remaining} segundos.'
                 )
                 return self.render_to_response(context)
@@ -59,9 +54,6 @@ class login(LoginView):
             custom_error = (
                 f'Credenciais inválidas. Restam {remaining} tentativas antes do bloqueio.'
             )
-
-        if custom_error:
-            messages.error(self.request, custom_error)
 
         context = self.get_context_data(form=form)
         context['custom_error'] = custom_error

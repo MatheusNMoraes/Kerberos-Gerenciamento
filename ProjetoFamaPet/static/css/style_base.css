@@ -124,8 +124,28 @@ h1, h2, h3, h4, .brand-font {
   border-radius: 10px;
   border: 1.5px solid var(--cinza-input);
   padding: 10px 14px;
+  min-height: 44px;
   font-family: var(--fonte-base);
   transition: border-color var(--transicao), box-shadow var(--transicao);
+}
+
+.form-select {
+  padding-right: 2.25rem;
+}
+
+textarea.form-control {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.input-group {
+  width: 100%;
+  min-width: 0;
+}
+
+.input-group > .form-control,
+.input-group > .form-select {
+  min-width: 0;
 }
 
 .form-control:focus, .form-select:focus {
@@ -242,6 +262,22 @@ textarea {
     .main-content > .container-fluid {
         padding: 1rem !important;
         border-radius: 1rem !important;
+    }
+
+    .main-content .card-body {
+        padding: 1rem !important;
+    }
+
+    .main-content .form-control,
+    .main-content .form-select,
+    .main-content textarea {
+        font-size: 16px;
+    }
+
+    .main-content .input-group-text {
+        min-width: 42px;
+        justify-content: center;
+        padding-inline: 0.65rem !important;
     }
 
     .main-content h1,
