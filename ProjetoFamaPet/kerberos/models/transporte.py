@@ -4,6 +4,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
+from datetime import timedelta
+
+ANTECEDENCIA_MINIMA = timedelta(minutes=30)
 
 
 class SolicitacaoTransporte(models.Model):
@@ -53,20 +56,31 @@ class SolicitacaoTransporte(models.Model):
             )
 
         if self.agendamento_id:
-            if (
-                self.horario_preferido
-                and self.horario_preferido >= self.agendamento.data
-            ):
-                errors["horario_preferido"] = (
-                    "A retirada precisa ocorrer antes do horário do agendamento."
-                )
-            if (
-                self.horario_confirmado
-                and self.horario_confirmado >= self.agendamento.data
-            ):
-                errors["horario_confirmado"] = (
-                    "A retirada confirmada precisa ocorrer antes do agendamento."
-                )
+            data_agendamento = self.agendamento.data
+            dia_agendamento = timezone.localtime(data_agendamento).date()
+            limite = data_agendamento - ANTECEDENCIA_MINIMA
+
+            if self.horario_preferido:
+                dia_preferido = timezone.localtime(self.horario_preferido).date()
+                if dia_preferido != dia_agendamento:
+                    errors["horario_preferido"] = (
+                        "A retirada precisa ser no mesmo dia do agendamento."
+                    )
+                elif self.horario_preferido >= limite:
+                    errors["horario_preferido"] = (
+                        "A retirada precisa ocorrer no minimo 30 minutos antes do agendamento."
+                    )
+
+            if self.horario_confirmado:
+                dia_confirmado = timezone.localtime(self.horario_confirmado).date()
+                if dia_confirmado != dia_agendamento:
+                    errors["horario_confirmado"] = (
+                        "A retirada confirmada precisa ser no mesmo dia do agendamento."
+                    )
+                elif self.horario_confirmado >= limite:
+                    errors["horario_confirmado"] = (
+                        "A retirada confirmada precisa ocorrer no minimo 30 minutos antes do agendamento."
+                    )
 
         if self.status in (
             self.StatusChoices.CONFIRMADO,
