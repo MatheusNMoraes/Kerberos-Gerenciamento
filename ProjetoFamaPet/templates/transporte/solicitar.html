@@ -1,41 +1,126 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
-{% block titulo %}Solicitar transporte — FamaPet{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/style_agenda.css' %}">
+{% endblock %}
+
+{% block title %}Solicitar Transporte — FamaPet{% endblock %}
+{% block titulo %}Solicitar Transporte — FamaPet{% endblock %}
 {% block nav_agendamentos %}active{% endblock %}
 
 {% block content %}
-<div class="container my-4" style="max-width: 700px;">
-  <div class="card shadow-sm">
-    <div class="card-body p-4">
-      <h2 class="h4 fw-bold">Solicitar busca do pet</h2>
-      <p class="text-muted">
-        {{ agendamento.pet.nome }} tem atendimento em {{ agendamento.data|date:"d/m/Y, H:i" }}.
-        A equipe confirmará o horário e a taxa antes de aceitar o transporte.
-      </p>
-      <p>
-        <a href="{% url 'politica-transporte' %}" target="_blank" rel="noopener">
-          Leia a política de transporte
-        </a>
-      </p>
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 850px;">
 
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {% for field in form %}
-          <div class="mb-3">
-            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}
-              <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
-            {% endif %}
-          </div>
-        {% endfor %}
-
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-primary">Enviar solicitação</button>
-          <a href="{% url 'agendamentos' %}" class="btn btn-outline-secondary">Cancelar</a>
+        <!-- Cabeçalho + Breadcrumb -->
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'agendamentos' %}" class="text-decoration-none text-muted small">Agendamentos</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Solicitar Transporte</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">Solicitar Busca do Pet</h2>
+                <p class="text-muted small mb-0">Informe os dados para retirada do seu pet. Nossa equipe confirmará o horário e a taxa antes de aceitar o transporte.</p>
+            </div>
+            <a href="{% url 'agendamentos' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i>
+                <span>Voltar à Lista</span>
+            </a>
         </div>
-      </form>
+
+        <!-- Card Principal -->
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-4 p-md-5 bg-white">
+
+                <!-- Seção 1: Resumo do Agendamento e Política -->
+                <div class="mb-4 pb-4 border-bottom">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                            <i class="bi bi-calendar-check text-dark fs-5"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0 text-dark brand-font">Agendamento Vinculado</h5>
+                    </div>
+
+                    <div class="p-3 rounded-3 border bg-light bg-opacity-50 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3" style="border-color: var(--cinza-input) !important;">
+                        <div class="row g-3 small flex-grow-1 w-100">
+                            <div class="col-12 col-sm-6">
+                                <span class="text-muted d-block"><i class="bi bi-heart-pulse me-1"></i>Pet</span>
+                                <strong class="text-dark fs-6">{{ agendamento.pet.nome }}</strong>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <span class="text-muted d-block"><i class="bi bi-clock me-1"></i>Data e horário</span>
+                                <strong class="text-dark fs-6">{{ agendamento.data|date:"d/m/Y, H:i" }}</strong>
+                            </div>
+                        </div>
+
+                        <a href="{% url 'politica-transporte' %}"
+                           target="_blank"
+                           rel="noopener"
+                           class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-2 text-nowrap flex-shrink-0">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Política de Transporte</span>
+                            <i class="bi bi-box-arrow-up-right small"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Formulário de Solicitação -->
+                <form method="POST" class="agenda-form" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4 small" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <div>{{ form.non_field_errors.0 }}</div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-4 pb-2">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                                <i class="bi bi-truck text-dark fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0 text-dark brand-font">Dados para Retirada</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            {% for field in form %}
+                                <div class="col-12 {% if field.field.widget.input_type != 'textarea' %}col-md-6{% endif %} min-w-0">
+                                    <label for="{{ field.id_for_label }}" class="form-label fw-bold text-dark small mb-1 d-inline-flex align-items-center gap-1">
+                                        <span>{{ field.label }}</span>
+                                    </label>
+                                    <div class="input-group">
+                                        {{ field }}
+                                    </div>
+                                    {% if field.help_text %}
+                                        <div class="form-text small text-muted">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    {% if field.errors %}
+                                        <div class="invalid-feedback d-block mt-1 small">
+                                            <i class="bi bi-exclamation-circle me-1"></i>{{ field.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
+                        <a href="{% url 'agendamentos' %}" class="btn btn-light border fw-semibold px-4 rounded-3 text-secondary" style="transition: all var(--transicao);">Cancelar</a>
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2" style="background-color: var(--amarelo-cta); transition: all var(--transicao);">
+                            <i class="bi bi-send-fill"></i>
+                            <span>Enviar Solicitação</span>
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
     </div>
-  </div>
 </div>
 {% endblock %}
