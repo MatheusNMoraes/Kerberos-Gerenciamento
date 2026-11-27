@@ -21,7 +21,7 @@
                     </ol>
                 </nav>
                 <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">{{ titulo_pagina }}</h2>
-                <p class="text-muted small mb-0">Preencha os campos abaixo para agendar ou atualizar o atendimento do pet.</p>
+                <p class="text-muted small mb-0">Preencha os campos abaixo na ordem para consultar os horários disponíveis.</p>
             </div>
             <a href="{% url 'agendamentos' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-2">
                 <i class="bi bi-arrow-left"></i>
@@ -41,12 +41,15 @@
                         </div>
                     {% endif %}
 
+                    {% if agendamento %}<input type="hidden" id="agendamento-id" value="{{ agendamento.pk }}">{% endif %}
+
+                    <!-- 1. PET E PROFISSIONAL -->
                     <div class="mb-4 pb-4 border-bottom">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
-                                <i class="bi bi-calendar-event text-dark fs-5"></i>
+                                <i class="bi bi-person-badge text-dark fs-5"></i>
                             </div>
-                            <h5 class="fw-bold mb-0 text-dark brand-font">Dados do Agendamento</h5>
+                            <h5 class="fw-bold mb-0 text-dark brand-font">1. Pet e Profissional</h5>
                         </div>
 
                         <div class="row g-3">
@@ -85,7 +88,36 @@
                                     <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.colaborador.errors.0 }}</div>
                                 {% endif %}
                             </div>
+                        </div>
+                    </div>
 
+                    <!-- 2. SERVIÇOS DESEJADOS -->
+                    <div class="mb-4 pb-4 border-bottom">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                                <i class="bi bi-scissors text-dark fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0 text-dark brand-font">2. Serviços Desejados</h5>
+                        </div>
+
+                        <div class="p-3 servicos-container border {% if form.servicos.errors %}border-danger{% endif %}" style="border-radius: 10px; border-color: var(--cinza-input) !important;">
+                            {{ form.servicos }}
+                        </div>
+                        {% if form.servicos.errors %}
+                            <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.servicos.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 3. DATA E HORÁRIO DISPONÍVEL (POR ÚLTIMO) -->
+                    <div class="mb-4 pb-2">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                                <i class="bi bi-calendar-check text-dark fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0 text-dark brand-font">3. Data e Horário</h5>
+                        </div>
+
+                        <div class="row g-3">
                             <div class="col-12 col-md-6 min-w-0">
                                 <label for="{{ form.data_dia.id_for_label }}" class="form-label fw-bold text-dark small mb-1 d-inline-flex align-items-center gap-1">
                                     <i class="bi bi-calendar3 text-muted"></i>
@@ -110,7 +142,7 @@
                                             data-url="{% url 'horarios_disponiveis' %}"
                                             disabled
                                             title="Selecione o profissional, dia e serviços">
-                                        <option value="">Selecione o profissional, dia e serviços</option>
+                                        <option value="">Selecione o profissional, serviços e dia</option>
                                     </select>
                                 </div>
                                 {{ form.data }}
@@ -119,24 +151,6 @@
                                 {% endif %}
                             </div>
                         </div>
-                    </div>
-
-                    {% if agendamento %}<input type="hidden" id="agendamento-id" value="{{ agendamento.pk }}">{% endif %}
-
-                    <div class="mb-4 pb-2">
-                        <div class="d-flex align-items-center gap-2 mb-3">
-                            <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
-                                <i class="bi bi-scissors text-dark fs-5"></i>
-                            </div>
-                            <h5 class="fw-bold mb-0 text-dark brand-font">Serviços Desejados</h5>
-                        </div>
-
-                        <div class="p-3 servicos-container border {% if form.servicos.errors %}border-danger{% endif %}" style="border-radius: 10px; border-color: var(--cinza-input) !important;">
-                            {{ form.servicos }}
-                        </div>
-                        {% if form.servicos.errors %}
-                            <div class="invalid-feedback d-block mt-1 small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.servicos.errors.0 }}</div>
-                        {% endif %}
                     </div>
 
                     <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
