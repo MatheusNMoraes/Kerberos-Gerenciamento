@@ -15,8 +15,18 @@
 
   <div class="bg-banner position-fixed top-0 start-0 z-0"></div>
 
-  <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative z-1 py-4">
-    <div class="auth-wrapper auth-wrapper--register">
+  <!-- Topo responsivo com botão escuro no canto superior direito -->
+  <div class="container-fluid position-relative z-2 pt-3 px-3 px-md-4 d-flex justify-content-end">
+    <a href="{% url 'home' %}"
+      class="btn btn-dark d-inline-flex align-items-center gap-2 shadow-sm fw-semibold">
+      <i class="bi bi-house-door" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline">Voltar à página inicial</span>
+      <span class="d-inline d-sm-none">Início</span>
+    </a>
+  </div>
+
+  <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative z-1 py-3 py-md-4">
+    <div class="auth-wrapper auth-wrapper--register w-100">
 
       <div class="d-flex justify-content-between px-2 mb-2">
         <a href="{% url 'login' %}" class="tab-link inactive">Entrar</a>
@@ -35,9 +45,10 @@
         {% endfor %}
         {% endif %}
 
-        <form method="post" novalidate>
+        <form method="post" id="cadastro-form" novalidate>
           {% csrf_token %}
 
+          <!-- Indicador das 3 Etapas -->
           <ul class="nav nav-pills nav-fill mb-4 small" id="pills-tab" role="tablist">
             <li class="nav-item" role="presentation">
               <button class="nav-link active py-1 fw-bold" id="pills-usuario-tab" data-bs-toggle="pill"
@@ -52,8 +63,8 @@
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link py-1 fw-bold" id="pills-pet-tab" data-bs-toggle="pill" data-bs-target="#pills-pet"
-                type="button" role="tab">
+              <button class="nav-link py-1 fw-bold" id="pills-pet-tab" data-bs-toggle="pill"
+                data-bs-target="#pills-pet" type="button" role="tab">
                 3. Pet
               </button>
             </li>
@@ -61,8 +72,12 @@
 
           <div class="tab-content" id="pills-tabContent">
 
+            <!-- ETAPA 1: DADOS DE ACESSO -->
             <div class="tab-pane fade show active" id="pills-usuario" role="tabpanel">
-              <h6 class="fw-bold mb-3 text-muted">Informações de Acesso</h6>
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h6 class="fw-bold mb-0 text-muted">Informações de Acesso</h6>
+                <span class="badge bg-light text-secondary border">Etapa 1 de 3</span>
+              </div>
 
               <div class="mb-3">
                 <label for="{{ form_usuario.nome.id_for_label }}" class="form-label small fw-bold">Nome Completo</label>
@@ -124,10 +139,22 @@
                 <div class="text-danger small mt-1">{{ form_usuario.confirmar_senha.errors.0 }}</div>
                 {% endif %}
               </div>
+
+              <div class="mt-4">
+                <button type="button"
+                  class="btn btn-custom w-100 d-flex align-items-center justify-content-center gap-2"
+                  data-ir-para="#pills-endereco-tab">
+                  Próximo: Endereço <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </button>
+              </div>
             </div>
 
+            <!-- ETAPA 2: ENDEREÇO -->
             <div class="tab-pane fade" id="pills-endereco" role="tabpanel">
-              <h6 class="fw-bold mb-3 text-muted">Seu Endereço</h6>
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h6 class="fw-bold mb-0 text-muted">Seu Endereço</h6>
+                <span class="badge bg-light text-secondary border">Etapa 2 de 3</span>
+              </div>
 
               {% for field in form_endereco %}
               <div class="mb-3">
@@ -141,10 +168,31 @@
                 {% endif %}
               </div>
               {% endfor %}
+
+              <div class="row g-2 mt-4">
+                <div class="col-6">
+                  <button type="button"
+                    class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2"
+                    data-ir-para="#pills-usuario-tab" data-pular-validacao="true">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar
+                  </button>
+                </div>
+                <div class="col-6">
+                  <button type="button"
+                    class="btn btn-custom w-100 d-flex align-items-center justify-content-center gap-2"
+                    data-ir-para="#pills-pet-tab">
+                    Próximo: Pet <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
             </div>
 
+            <!-- ETAPA 3: PET E FINALIZAÇÃO -->
             <div class="tab-pane fade" id="pills-pet" role="tabpanel">
-              <h6 class="fw-bold mb-3 text-muted">Seu Primeiro Pet</h6>
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h6 class="fw-bold mb-0 text-muted">Seu Primeiro Pet</h6>
+                <span class="badge bg-light text-secondary border">Etapa 3 de 3</span>
+              </div>
 
               {% for field in form_pet %}
               <div class="mb-3">
@@ -164,15 +212,27 @@
                 </div>
                 <div class="form-check">
                   {{ form_usuario.aceita_regulamento }}
-                  <label class="form-check-label" for="{{ form_usuario.aceita_regulamento.id_for_label }}">{{form_usuario.aceita_regulamento.label }}</label>
+                  <label class="form-check-label" for="{{ form_usuario.aceita_regulamento.id_for_label }}">{{ form_usuario.aceita_regulamento.label }}</label>
                   {% if form_usuario.aceita_regulamento.errors %}
                   <div class="text-danger small mt-1">{{ form_usuario.aceita_regulamento.errors.0 }}</div>
                   {% endif %}
                 </div>
               </div>
 
-              <div class="text-center mt-4">
-                <button type="submit" class="btn btn-custom w-100">Finalizar Cadastro</button>
+              <div class="row g-2 mt-4">
+                <div class="col-5">
+                  <button type="button"
+                    class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2"
+                    data-ir-para="#pills-endereco-tab" data-pular-validacao="true">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar
+                  </button>
+                </div>
+                <div class="col-7">
+                  <button type="submit"
+                    class="btn btn-custom w-100 d-flex align-items-center justify-content-center gap-2">
+                    Finalizar Cadastro <i class="bi bi-check-lg" aria-hidden="true"></i>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -184,19 +244,92 @@
             target="_blank" rel="noopener noreferrer">Precisa de ajuda?</a>
         </div>
       </div>
-      <div class="px-4 mb-2 text-center">
-        <a href="{% url 'home' %}"
-          class="btn btn-home d-inline-flex align-items-center justify-content-center gap-2 mt-4">
-          <i class="bi bi-house-door" aria-hidden="true"></i>
-          Voltar à página inicial
-        </a>
-      </div>
+
     </div>
   </div>
 
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'js/cep-viacep.js' %}"></script>
   <script src="{% static 'js/password-toggle.js' %}" defer></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('cadastro-form');
+      const senhaInput = document.getElementById('{{ form_usuario.senha.id_for_label }}');
+      const confirmarSenhaInput = document.getElementById('{{ form_usuario.confirmar_senha.id_for_label }}');
+
+      function validarEtapa(pane) {
+        const campos = pane.querySelectorAll('input, select, textarea');
+
+        for (const campo of campos) {
+          if (campo.type === 'hidden') continue;
+          campo.setCustomValidity('');
+
+          if (!campo.checkValidity()) {
+            campo.reportValidity();
+            return false;
+          }
+        }
+
+        if (pane.id === 'pills-usuario' && senhaInput && confirmarSenhaInput) {
+          if (senhaInput.value !== confirmarSenhaInput.value) {
+            confirmarSenhaInput.setCustomValidity('As senhas não coincidem.');
+            confirmarSenhaInput.reportValidity();
+            return false;
+          }
+          confirmarSenhaInput.setCustomValidity('');
+        }
+
+        return true;
+      }
+
+      // Bloqueia clique direto nas abas superiores caso a etapa atual tenha erros ao tentar avançar
+      const ordemAbas = ['pills-usuario', 'pills-endereco', 'pills-pet'];
+      document.querySelectorAll('#pills-tab [data-bs-toggle="pill"]').forEach(tabBtn => {
+        tabBtn.addEventListener('show.bs.tab', function (event) {
+          const paneAtual = document.querySelector('#pills-tabContent .tab-pane.active');
+          if (!paneAtual) return;
+
+          const destinoId = this.getAttribute('data-bs-target').replace('#', '');
+          const indoParaFrente = ordemAbas.indexOf(destinoId) > ordemAbas.indexOf(paneAtual.id);
+
+          if (indoParaFrente && !validarEtapa(paneAtual)) {
+            event.preventDefault();
+          }
+        });
+      });
+
+      // Botões "Próximo" e "Voltar"
+      document.querySelectorAll('[data-ir-para]').forEach(btn => {
+        btn.addEventListener('click', function () {
+          const paneAtual = this.closest('.tab-pane');
+          const pularValidacao = this.dataset.pularValidacao === 'true';
+
+          if (!pularValidacao && !validarEtapa(paneAtual)) {
+            return;
+          }
+
+          const abaAlvo = document.querySelector(this.dataset.irPara);
+          if (abaAlvo) {
+            bootstrap.Tab.getOrCreateInstance(abaAlvo).show();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      });
+
+      // Abre automaticamente a primeira etapa com erro caso o Django retorne erros no POST
+      const primeiroErro = form.querySelector('.text-danger');
+      if (primeiroErro) {
+        const paneErro = primeiroErro.closest('.tab-pane');
+        if (paneErro) {
+          const abaErro = document.querySelector(`[data-bs-target="#${paneErro.id}"]`);
+          if (abaErro) {
+            bootstrap.Tab.getOrCreateInstance(abaErro).show();
+          }
+        }
+      }
+    });
+  </script>
 </body>
 
 </html>
