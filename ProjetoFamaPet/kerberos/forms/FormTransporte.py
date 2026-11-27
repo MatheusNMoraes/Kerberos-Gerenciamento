@@ -45,15 +45,11 @@ class SolicitacaoTransporteForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.agendamento = agendamento
         self.usuario = usuario
-
-        # Essencial: faz o clean() do model enxergar o agendamento durante
-        # o is_valid(), assim a regra "mesmo dia" vira mensagem de erro
-        # no formulário em vez de exceção no save().
+        
         self.instance.agendamento = agendamento
 
         self.fields["observacoes"].widget.attrs["maxlength"] = "500"
 
-        # getattr evita RelatedObjectDoesNotExist caso o usuário não tenha endereço
         endereco = getattr(usuario, "endereco", None)
         if endereco and not self.is_bound:
             self.fields["endereco_retirada"].initial = (
@@ -69,9 +65,6 @@ class SolicitacaoTransporteForm(forms.ModelForm):
         return observacoes
 
     def clean_horario_preferido(self):
-        # Aqui fica apenas a regra do "futuro". As regras relativas ao
-        # agendamento (mesmo dia e antes do horário) ficam no clean() do model,
-        # que é a única fonte dessa regra.
         horario = self.cleaned_data["horario_preferido"]
         if horario <= timezone.now():
             raise forms.ValidationError("Informe um horário futuro.")
