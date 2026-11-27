@@ -1,40 +1,135 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
-{% block titulo %}Gerenciar transporte — FamaPet{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/style_agenda.css' %}">
+{% endblock %}
+
+{% block title %}Gerenciar Transporte — FamaPet{% endblock %}
+{% block titulo %}Gerenciar Transporte — FamaPet{% endblock %}
+{% block nav_admin_transportes %}active{% endblock %}
 
 {% block content %}
-<div class="container my-4" style="max-width: 700px;">
-  <div class="card shadow-sm">
-    <div class="card-body p-4">
-      <h2 class="h4 fw-bold">Gerenciar transporte</h2>
-      <p>
-        <strong>Pet:</strong> {{ solicitacao.agendamento.pet.nome }}<br>
-        <strong>Tutor:</strong> {{ solicitacao.agendamento.usuario.nome }}<br>
-        <strong>Atendimento:</strong> {{ solicitacao.agendamento.data|date:"d/m/Y, H:i" }}<br>
-        <strong>Retirada:</strong> {{ solicitacao.endereco_retirada }}<br>
-        <strong>Preferência do tutor:</strong> {{ solicitacao.horario_preferido|date:"d/m/Y, H:i" }}
-      </p>
-      {% if solicitacao.observacoes %}
-        <p><strong>Observações:</strong> {{ solicitacao.observacoes }}</p>
-      {% endif %}
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 850px;">
 
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {% for field in form %}
-          <div class="mb-3">
-            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}
-              <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
-            {% endif %}
-          </div>
-        {% endfor %}
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-primary">Salvar</button>
-          <a href="{% url 'gerenciar_transportes' %}" class="btn btn-outline-secondary">Voltar</a>
+        <!-- Cabeçalho + Breadcrumb -->
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'gerenciar_transportes' %}" class="text-decoration-none text-muted small">Transportes</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Gerenciar Transporte</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">Gerenciar Transporte</h2>
+                <p class="text-muted small mb-0">Confira os dados da solicitação e preencha os campos abaixo para atualizar o transporte.</p>
+            </div>
+            <a href="{% url 'gerenciar_transportes' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i>
+                <span>Voltar à Lista</span>
+            </a>
         </div>
-      </form>
+
+        <!-- Card Principal -->
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: var(--raio) !important;">
+            <div class="card-body p-4 p-md-5 bg-white">
+
+                <!-- Seção 1: Resumo da Solicitação -->
+                <div class="mb-4 pb-4 border-bottom">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                            <i class="bi bi-truck text-dark fs-5"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0 text-dark brand-font">Detalhes da Solicitação</h5>
+                    </div>
+
+                    <div class="p-3 rounded-3 border bg-light bg-opacity-50" style="border-color: var(--cinza-input) !important;">
+                        <div class="row g-3 small">
+                            <div class="col-12 col-md-6">
+                                <span class="text-muted d-block"><i class="bi bi-heart-pulse me-1"></i>Pet</span>
+                                <strong class="text-dark fs-6">{{ solicitacao.agendamento.pet.nome }}</strong>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="text-muted d-block"><i class="bi bi-person me-1"></i>Tutor</span>
+                                <strong class="text-dark fs-6">{{ solicitacao.agendamento.usuario.nome }}</strong>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="text-muted d-block"><i class="bi bi-calendar-check me-1"></i>Atendimento</span>
+                                <strong class="text-dark">{{ solicitacao.agendamento.data|date:"d/m/Y, H:i" }}</strong>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="text-muted d-block"><i class="bi bi-clock me-1"></i>Preferência do tutor</span>
+                                <strong class="text-dark">{{ solicitacao.horario_preferido|date:"d/m/Y, H:i" }}</strong>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted d-block"><i class="bi bi-geo-alt me-1"></i>Endereço de retirada</span>
+                                <strong class="text-dark">{{ solicitacao.endereco_retirada }}</strong>
+                            </div>
+                            {% if solicitacao.observacoes %}
+                                <div class="col-12 pt-2 border-top">
+                                    <span class="text-muted d-block"><i class="bi bi-chat-left-text me-1"></i>Observações</span>
+                                    <span class="text-dark">{{ solicitacao.observacoes }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Formulário de Atualização -->
+                <form method="POST" class="agenda-form" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4 small" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <div>{{ form.non_field_errors.0 }}</div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-4 pb-2">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                                <i class="bi bi-sliders text-dark fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0 text-dark brand-font">Dados do Transporte</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            {% for field in form %}
+                                <div class="col-12 {% if field.field.widget.input_type != 'textarea' %}col-md-6{% endif %} min-w-0">
+                                    <label for="{{ field.id_for_label }}" class="form-label fw-bold text-dark small mb-1 d-inline-flex align-items-center gap-1">
+                                        <span>{{ field.label }}</span>
+                                    </label>
+                                    <div class="input-group">
+                                        {{ field }}
+                                    </div>
+                                    {% if field.help_text %}
+                                        <div class="form-text small text-muted">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    {% if field.errors %}
+                                        <div class="invalid-feedback d-block mt-1 small">
+                                            <i class="bi bi-exclamation-circle me-1"></i>{{ field.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
+                        <a href="{% url 'gerenciar_transportes' %}" class="btn btn-light border fw-semibold px-4 rounded-3 text-secondary" style="transition: all var(--transicao);">Voltar</a>
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2" style="background-color: var(--amarelo-cta); transition: all var(--transicao);">
+                            <i class="bi bi-check2-square"></i>
+                            <span>Salvar Alterações</span>
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
     </div>
-  </div>
 </div>
 {% endblock %}
