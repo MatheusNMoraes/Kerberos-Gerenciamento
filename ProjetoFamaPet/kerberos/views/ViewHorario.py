@@ -4,7 +4,6 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from kerberos.decorators import administrador_required
 from kerberos.forms.FormHorario import ExcecaoHorarioForm, HorarioDiaForm
 from kerberos.models.horario import DIAS_DA_SEMANA, ExcecaoHorario, HorarioFuncionamento
 

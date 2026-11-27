@@ -14,7 +14,11 @@
     };
 
     cepInput.addEventListener('input', async () => {
-        const cep = cepInput.value.replace(/\D/g, '');
+        const digits = cepInput.value.replace(/\D/g, '').slice(0, 8);
+        cepInput.value = digits.length > 5
+            ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+            : digits;
+        const cep = digits;
 
         if (cep.length !== 8) {
             ultimoCepConsultado = '';

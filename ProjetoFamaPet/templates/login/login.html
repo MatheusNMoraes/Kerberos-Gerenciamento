@@ -17,7 +17,7 @@
   <div class="bg-banner position-fixed top-0 start-0 z-0"></div>
 
   <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative z-1 py-4">
-    <div class="auth-wrapper" style="max-width: 420px; width: 100%;">
+    <div class="auth-wrapper">
 
 
 
@@ -37,15 +37,6 @@
         <div class="alert alert-danger py-2 small mb-3 text-center" role="alert">
           Nome de usuário ou senha incorretos.
         </div>
-        {% endif %}
-
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3 py-2 small" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Fechar"></button>
-        </div>
-        {% endfor %}
         {% endif %}
 
         <form method="post" novalidate>
