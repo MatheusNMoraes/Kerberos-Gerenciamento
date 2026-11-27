@@ -16,10 +16,18 @@
 
   <div class="bg-banner position-fixed top-0 start-0 z-0"></div>
 
-  <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative z-1 py-4">
-    <div class="auth-wrapper">
+  <!-- Topo responsivo com botão escuro no canto superior direito -->
+  <div class="container-fluid position-relative z-2 pt-3 px-3 px-md-4 d-flex justify-content-end">
+    <a href="{% url 'home' %}"
+      class="btn btn-dark d-inline-flex align-items-center gap-2 shadow-sm fw-semibold">
+      <i class="bi bi-house-door" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline">Voltar à página inicial</span>
+      <span class="d-inline d-sm-none">Início</span>
+    </a>
+  </div>
 
-
+  <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative z-1 py-3 py-md-4">
+    <div class="auth-wrapper w-100">
 
       <div class="d-flex justify-content-between px-2 mb-2">
         <a href="{% url 'login' %}" class="tab-link active">Entrar</a>
@@ -73,13 +81,6 @@
           <a href="https://wa.me/5511963771187?text=Preciso%20de%20ajuda%20para%20acessar%20minha%20conta."
             class="help-link" target="_blank" rel="noopener noreferrer">Precisa de ajuda?</a>
         </div>
-      </div>
-      <div class="px-4 mb-2 text-center">
-        <a href="{% url 'home' %}"
-          class="btn btn-home d-inline-flex align-items-center justify-content-center gap-2 mt-4">
-          <i class="bi bi-house-door" aria-hidden="true"></i>
-          Voltar à página inicial
-        </a>
       </div>
 
     </div>
