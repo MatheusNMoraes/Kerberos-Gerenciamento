@@ -1,41 +1,127 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
-{% block titulo %}Solicitações de transporte — FamaPet{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/style_agenda.css' %}">
+{% endblock %}
+
+{% block title %}Solicitações de Transporte — FamaPet{% endblock %}
+{% block titulo %}Solicitações de Transporte — FamaPet{% endblock %}
+{% block nav_admin_transportes %}active{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-  <h2 class="h3 fw-bold mb-4">Solicitações de transporte</h2>
+<div class="container-fluid px-2 px-md-3 py-2">
+    <div class="content-wrapper mx-auto" style="max-width: 960px;">
 
-  {% for solicitacao in solicitacoes %}
-    <div class="card shadow-sm mb-3">
-      <div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
-        <div>
-          <h3 class="h5 mb-2">
-            {{ solicitacao.agendamento.pet.nome }} — {{ solicitacao.agendamento.usuario.nome }}
-          </h3>
-          <div><strong>Atendimento:</strong> {{ solicitacao.agendamento.data|date:"d/m/Y, H:i" }}</div>
-          <div><strong>Endereço de retirada:</strong> {{ solicitacao.endereco_retirada }}</div>
-          <div><strong>Horário preferido:</strong> {{ solicitacao.horario_preferido|date:"d/m/Y, H:i" }}</div>
-          <div><strong>Status:</strong> {{ solicitacao.get_status_display }}</div>
-          {% if solicitacao.horario_confirmado %}
-            <div><strong>Horário confirmado:</strong> {{ solicitacao.horario_confirmado|date:"d/m/Y, H:i" }}</div>
-          {% endif %}
-          {% if solicitacao.taxa != None %}
-            <div><strong>Taxa:</strong> R$ {{ solicitacao.taxa }}</div>
-          {% endif %}
-          {% if solicitacao.observacoes %}
-            <div><strong>Observações:</strong> {{ solicitacao.observacoes }}</div>
-          {% endif %}
+        <!-- Cabeçalho + Breadcrumb -->
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'agendamentos' %}" class="text-decoration-none text-muted small">Painel</a></li>
+                        <li class="breadcrumb-item active small text-dark fw-semibold" aria-current="page">Solicitações de Transporte</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark mb-1 brand-font" style="font-size: 2rem;">Solicitações de Transporte</h2>
+                <p class="text-muted small mb-0">Acompanhe e gerencie os pedidos de busca e entrega dos pets.</p>
+            </div>
         </div>
-        <div>
-          <a href="{% url 'editar_solicitacao_transporte' solicitacao.pk %}" class="btn btn-outline-primary">
-            Gerenciar pedido
-          </a>
-        </div>
-      </div>
+
+        <!-- Lista de Solicitações -->
+        {% for solicitacao in solicitacoes %}
+            <div class="card border-0 shadow-sm overflow-hidden mb-3" style="border-radius: var(--raio) !important;">
+                <div class="card-body p-4 bg-white">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+                        
+                        <!-- Informações do Pedido -->
+                        <div class="flex-grow-1 w-100">
+                            <!-- Título + Status -->
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-3 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-truck text-dark fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="h5 fw-bold text-dark mb-0 brand-font">
+                                            {{ solicitacao.agendamento.pet.nome }}
+                                        </h3>
+                                        <span class="text-muted small">
+                                            <i class="bi bi-person me-1"></i>Tutor: {{ solicitacao.agendamento.usuario.nome }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <span class="badge rounded-pill bg-warning bg-opacity-25 text-dark border border-warning border-opacity-50 px-3 py-2 fw-semibold">
+                                    <i class="bi bi-info-circle me-1"></i>{{ solicitacao.get_status_display }}
+                                </span>
+                            </div>
+
+                            <!-- Grid de Detalhes -->
+                            <div class="row g-3 small">
+                                <div class="col-12 col-sm-6 col-lg-4">
+                                    <span class="text-muted d-block"><i class="bi bi-calendar-check me-1"></i>Atendimento</span>
+                                    <strong class="text-dark">{{ solicitacao.agendamento.data|date:"d/m/Y, H:i" }}</strong>
+                                </div>
+
+                                <div class="col-12 col-sm-6 col-lg-4">
+                                    <span class="text-muted d-block"><i class="bi bi-clock me-1"></i>Horário preferido</span>
+                                    <strong class="text-dark">{{ solicitacao.horario_preferido|date:"d/m/Y, H:i" }}</strong>
+                                </div>
+
+                                {% if solicitacao.horario_confirmado %}
+                                    <div class="col-12 col-sm-6 col-lg-4">
+                                        <span class="text-muted d-block"><i class="bi bi-clock-fill text-success me-1"></i>Horário confirmado</span>
+                                        <strong class="text-dark">{{ solicitacao.horario_confirmado|date:"d/m/Y, H:i" }}</strong>
+                                    </div>
+                                {% endif %}
+
+                                {% if solicitacao.taxa != None %}
+                                    <div class="col-12 col-sm-6 col-lg-4">
+                                        <span class="text-muted d-block"><i class="bi bi-cash-coin me-1"></i>Taxa</span>
+                                        <strong class="text-dark">R$ {{ solicitacao.taxa }}</strong>
+                                    </div>
+                                {% endif %}
+
+                                <div class="col-12 {% if solicitacao.taxa != None %}col-lg-8{% endif %}">
+                                    <span class="text-muted d-block"><i class="bi bi-geo-alt me-1"></i>Endereço de retirada</span>
+                                    <strong class="text-dark">{{ solicitacao.endereco_retirada }}</strong>
+                                </div>
+
+                                {% if solicitacao.observacoes %}
+                                    <div class="col-12">
+                                        <div class="p-2 px-3 rounded-3 bg-light border small text-dark" style="border-color: var(--cinza-input) !important;">
+                                            <i class="bi bi-chat-left-text text-muted me-1"></i>
+                                            <strong>Observações:</strong> {{ solicitacao.observacoes }}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Ação -->
+                        <div class="w-100 w-md-auto d-flex justify-content-end align-self-md-center pt-2 pt-md-0">
+                            <a href="{% url 'editar_solicitacao_transporte' solicitacao.pk %}"
+                               class="btn btn-warning text-dark fw-bold px-3 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2 text-nowrap w-100 w-md-auto"
+                               style="background-color: var(--amarelo-cta); transition: all var(--transicao);">
+                                <i class="bi bi-sliders"></i>
+                                <span>Gerenciar Pedido</span>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <!-- Estado Vazio -->
+            <div class="card border-0 shadow-sm text-center p-5 bg-white" style="border-radius: var(--raio) !important;">
+                <div class="rounded-circle bg-warning bg-opacity-20 d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-truck text-dark fs-3"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1 brand-font">Nenhuma solicitação encontrada</h5>
+                <p class="text-muted small mb-0">Ainda não há solicitações de transporte registradas no sistema.</p>
+            </div>
+        {% endfor %}
+
     </div>
-  {% empty %}
-    <p class="text-muted">Ainda não há solicitações de transporte.</p>
-  {% endfor %}
 </div>
 {% endblock %}
